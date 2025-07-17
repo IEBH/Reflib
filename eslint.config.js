@@ -1,12 +1,14 @@
+import {defineConfig, globalIgnores} from "eslint/config";
 import RulesMFDC from '@momsfriendlydevco/eslint-config';
 
-export default [
-	{
-		// Global ignore rules - Do not add any other keys to this object
-		ignores: [
-			'.*',
-			'node_modules/',
-		],
-	},
+export default defineConfig([
+	globalIgnores([
+		'.*',
+		'docs/',
+		'dist/',
+		'node_modules/',
+		'public/',
+		'**/.wrangler/',
+	]),
 	...RulesMFDC,
-]
+])

@@ -45,9 +45,9 @@
     "JSONStream": "./modules/shims/JSONStream-browser.js"
   },
   "devDependencies": {
-    "@momsfriendlydevco/eslint-config": "^2.1.2",
+    "@momsfriendlydevco/eslint-config": "^2.3.1",
     "chai": "^5.2.0",
-    "eslint": "^9.21.0",
+    "eslint": "^9.31.0",
     "mocha": "^11.1.0",
     "mocha-logger": "^1.0.8",
     "nodemon": "^3.1.9",
