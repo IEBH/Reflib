@@ -54,5 +54,8 @@
     "plugins": [
       "@babel/plugin-proposal-export-default-from"
     ]
+  },
+  "devDependencies": {
+    "esbuild": "^0.14.54"
   }
 }

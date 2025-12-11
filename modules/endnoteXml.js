@@ -250,7 +250,7 @@ export function writeStream(stream, options) {
 					// Urls
 					+ (ref.urls ?
 						'<urls><related-urls>'
-						+ (ref.urls || [])
+						+ [].concat(ref.urls || [])
 							.map(url => `<url><style face="normal" font="default" size="100%">${xmlEscape(url)}</style></url>`)
 							.join('')
 						+ '</related-urls></urls>'
@@ -259,7 +259,7 @@ export function writeStream(stream, options) {
 					// Keywords
 					+ (ref.keywords ?
 						'<keywords>'
-						+ (ref.keywords || [])
+						+ [].concat(ref.keywords || [])
 							.map(keyword => `<keyword><style face="normal" font="default" size="100%">${xmlEscape(keyword)}</style></keyword>`)
 							.join('')
 						+ '</keywords>'
