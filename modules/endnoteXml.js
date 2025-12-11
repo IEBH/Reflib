@@ -85,6 +85,13 @@ export function readStream(stream) {
 				} else {
 					ref.keywords.push(xmlUnescape(text));
 				}
+			} else if (parentName == 'style' && gParentName == 'url') {
+				if (!ref.urls) ref.urls = [];
+				if (textAppend) {
+					ref.urls[ref.urls.length - 1] += xmlUnescape(text);
+				} else {
+					ref.urls.push(xmlUnescape(text));
+				}
 			} else if (parentName == 'style') { // Text within <style/> tag
 				if (textAppend || ref[gParentName]) { // Text already exists? Append (handles node-expats silly multi-text per escape character "feature")
 					ref[gParentName] += xmlUnescape(text);

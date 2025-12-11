@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <records>
+    <record>
+      <database name="4735 Neeraj Bhatnagar EndNote Library.enl" path="V:\Corp Admin Services\Library\Ask A Librarian Searches\2025\Searches\4735 Neeraj Bhatnagar\4735 Neeraj Bhatnagar EndNote Library.enl">4735 Neeraj Bhatnagar EndNote Library.enl</database>
+      <source-app name="EndNote" version="21.0">EndNote</source-app>
+      <rec-number>498</rec-number>
+      <foreign-keys>
+        <key app="EN" db-id="tdaxrxzrhpp5t1ef2a8x2vtvrzrdxv22p52w">498</key>
+      </foreign-keys>
+      <ref-type name="Journal Article">17</ref-type>
+      <contributors>
+        <authors>
+          <author>
+            <style face="normal" font="default" size="100%">Zhang, Zexin</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Li, Shu</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Dai, Xinyue</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Li, Cong</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Sun, Pengfei</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Qu, Jianwen</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Jiang, Haiyue</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Pan, Bo</style>
+          </author>
+        </authors>
+      </contributors>
+      <titles>
+        <title>
+          <style face="normal" font="default" size="100%">Association of glucagon-like peptide-1 receptor agonists and seven common mental disorders: A drug target and mediation Mendelian randomization</style>
+        </title>
+        <secondary-title>
+          <style face="normal" font="default" size="100%">Journal of affective disorders</style>
+        </secondary-title>
+      </titles>
+      <periodical>
+        <full-title>
+          <style face="normal" font="default" size="100%">Journal of affective disorders</style>
+        </full-title>
+      </periodical>
+      <pages>
+        <style face="normal" font="default" size="100%">119509</style>
+      </pages>
+      <volume>
+        <style face="normal" font="default" size="100%">388</style>
+      </volume>
+      <section>
+        <style face="normal" font="default" size="100%">Zhang, Zexin. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China.&#13;Li, Shu. Xiamen University, School of Medicine, Xiamen, Fujian, China.&#13;Dai, Xinyue. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China.&#13;Li, Cong. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China.&#13;Sun, Pengfei. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China.&#13;Qu, Jianwen. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China.&#13;Jiang, Haiyue. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China. Electronic address: bjbjjhy@163.com.&#13;Pan, Bo. Department of Plastic Surgery, Plastic Surgery Hospital, Chinese Academy of Medical Sciences and Peking Union Medical College, Beijing, China. Electronic address: zbzbzhc@163.com.</style>
+      </section>
+      <keywords>
+        <keyword>
+          <style face="normal" font="default" size="100%">Humans</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">Mendelian Randomization Analysis</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">*Glucagon-Like Peptide-1 Receptor Agonists</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">Genome-Wide Association Study</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">*Mental Disorders/ge [Genetics]</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">*Glucagon-Like Peptide-1 Receptor/ge [Genetics]</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">Diabetes Mellitus, Type 2/ge [Genetics]</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">Depressive Disorder, Major/ge [Genetics]</style>
+        </keyword>
+      </keywords>
+      <dates>
+        <year>
+          <style face="normal" font="default" size="100%">2025</style>
+        </year>
+      </dates>
+      <pub-location>
+        <style face="normal" font="default" size="100%">Netherlands</style>
+      </pub-location>
+      <isbn>
+        <style face="normal" font="default" size="100%">1573-2517&#13;0165-0327</style>
+      </isbn>
+      <abstract>
+        <style face="normal" font="default" size="100%">BACKGROUND: Glucagon-like peptide-1 receptor agonists (GLP1RA) have been associated with psychiatric symptoms; however, the causal relationships between GLP1RA and seven common mental disorders remain unknown., METHODS: Mendelian Randomization (MR) were employed to explore the causalities between GLP1RA and seven common mental disorders using genome-wide association study (GWAS) data from 3 million individuals. Type 2 diabetes, blood glucose levels, insulin levels, and appetite was used as positive control. Multiple validations were performed based on the Psychiatric Genomics Consortium (PGC), UK Biobank (UKB), and FinnGen databases. A two-step MR analysis was used to assess the mediating effects. Finally, a systematic review was conducted to validate the psychotropic side effects of GLP1RA., RESULTS: Positive control analysis indicated that the genetically predicted levels of GLP1R expression accurately reflect the physiological effects of GLP1RA, encompassing the reduction of blood glucose, fat reduction, endocrine regulation, and appetite suppression. GLP1RA reduced the risk of Major Depression Disorder (MDD) (OR = 0.6831 (0.6412-0.7277), FDR &lt; 0.05), Bipolar Disorder (BID) (OR = 0.8019 (0.7504-0.857), FDR &lt; 0.05), and Autism Spectrum Disorder (ASD) (OR = 0.7115 (0.6448-0.7852), FDR &lt; 0.05). Meta results of MR support GLP1RA being a risk factor for Anorexia Nervosa (AN). The mediating MR results showed that serum glucagon and insulin levels were involved in the causal effects between GLP1R expression levels and AN (5.58 %) and BID (6.37 %) (P &lt; 0.05). Finally, 16 observational studies were included in systematic review, most of which supported GLP1RA as a protective factor for MDD., CONCLUSIONS: Our study suggests that GLP1RA can reduce the risk of MDD, ASD, and BID. This study has significant implications for the safe application of GLP1RAs. Copyright © 2025 Elsevier B.V. All rights reserved.</style>
+      </abstract>
+      <urls>
+        <related-urls>
+          <url>
+            <style face="normal" font="default" size="100%">https://ovidsp.ovid.com/ovidweb.cgi?T=JS&amp;PAGE=reference&amp;D=med27&amp;NEWS=N&amp;AN=40447157</style>
+          </url>
+        </related-urls>
+      </urls>
+      <electronic-resource-num>
+        <style face="normal" font="default" size="100%">https://dx.doi.org/10.1016/j.jad.2025.119509</style>
+      </electronic-resource-num>
+      <remote-database-name>
+        <style face="normal" font="default" size="100%">Ovid MEDLINE(R) &lt;January Week 2 2025 to July Week 5 2025&gt;</style>
+      </remote-database-name>
+      <access-date>
+        <style face="normal" font="default" size="100%">20250528//</style>
+      </access-date>
+    </record>
+  </records>
+</xml>

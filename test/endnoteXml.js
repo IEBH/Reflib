@@ -126,4 +126,25 @@ describe('Module: endnoteXml', ()=> {
 	});
 	// }}}
 
+	it('should extract URLs from an XML file', function() {
+		this.timeout(30 * 1000); //= 30s
+
+		return reflib.readFile(`${__dirname}/data/missing-urls.xml`)
+			.then(refs => {
+				expect(refs).to.be.an('array');
+				expect(refs).to.have.length(1);
+				expect(refs[0]).to.be.an('object');
+				expect(refs[0]).to.have.property('recNumber', '498');
+				expect(refs[0]).to.have.property('type', 'journalArticle');
+				expect(refs[0]).to.have.property('authors');
+				expect(refs[0].authors).to.deep.equal(['Zhang, Zexin', 'Li, Shu', 'Dai, Xinyue', 'Li, Cong', 'Sun, Pengfei', 'Qu, Jianwen', 'Jiang, Haiyue', 'Pan, Bo']);
+				expect(refs[0]).to.have.property('title', 'Association of glucagon-like peptide-1 receptor agonists and seven common mental disorders: A drug target and mediation Mendelian randomization');
+				expect(refs[0]).to.have.property('journal', 'Journal of affective disorders');
+				expect(refs[0]).to.have.property('pages', '119509');
+				expect(refs[0]).to.have.property('volume', '388');
+				expect(refs[0]).to.have.property('urls');
+				expect(refs[0].urls).to.deep.equal(['https://ovidsp.ovid.com/ovidweb.cgi?T=JS&PAGE=reference&D=med27&NEWS=N&AN=40447157']); // NOTE: This is a decoded URL, not the RAW XML escaped value
+			})
+	});
+
 });
