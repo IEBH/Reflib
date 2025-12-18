@@ -9,6 +9,8 @@ import Emitter from '../shared/emitter.js';
 * @param {Object} [options] Additional options to use when parsing
 * @param {string} [options.defaultType='report'] Default citation type to assume when no other type is specified
 * @param {string} [options.delimeter='\r'] How to split multi-line items
+* @param {Boolean} [options.convertAbstract=true] If the `fallbackAbstract` field exists but not `abstract` use the former as the latter
+* @param {Boolean} [options.convertCity=true] If the `fallbackCity` field exists but not `city` use the former as the latter
 *
 * @returns {Object} A readable stream analogue defined in `modules/interface.js`
 */
@@ -16,6 +18,8 @@ export function readStream(stream, options) {
 	let settings = {
 		defaultType: 'journalArticle',
 		delimeter: '\r',
+		convertAbtract: true,
+		convertCity: true,
 		...options,
 	};
 
@@ -132,6 +136,7 @@ export function writeStream(stream, options) {
 *
 * @param {string} refString Raw RIS string composing the start -> end of the ref
 * @param {Object} settings Additional settings to pass, this should be initialized + parsed by the calling function for efficiency, see readStream() for full spec
+* @param {Boolean} [settings.convertAbstract=true] If the `fallbackAbstract` field exists but not `abstract` use the former as the latter
 * @returns {ReflibRef} The parsed reference
 */
 export function parseRef(refString, settings) {
@@ -183,6 +188,18 @@ export function parseRef(refString, settings) {
 			.join('-');
 		delete ref._pageStart;
 		delete ref._pageEnd;
+	}
+	// }}}
+	// FallbackAbstract -> Abstract (if the latter is missing) {{{
+	if ((settings.fallbackAbstract ?? true) && ref.fallbackAbstract && !ref.abstract) {
+		ref.abstract = ref.fallbackAbstract;
+		delete ref.fallbackAbstract;
+	}
+	// }}}
+	// FallbackCity -> City (if the latter is missing) {{{
+	if ((settings.fallbackCity ?? true) && ref.fallbackCity && !ref.abstract) {
+		ref.city = ref.fallbackCity;
+		delete ref.fallbackCity;
 	}
 	// }}}
 

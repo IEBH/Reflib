@@ -68,7 +68,7 @@ export function compareEmbaseTestRefs(refs, options) {
             excludeKeys: [],
             ...options,
       };
-      if (['medline', 'ris'].includes(settings.profile)) settings.excludeKeys.push('recNumber');
+      if (['medline', 'ris'].includes(settings.profile)) settings.excludeKeys.push('recNumber', 'fallbackAbstract');
       if (['medline'].includes(settings.profile)) settings.excludeKeys.push('address', 'isbn', 'notes', 'custom1', 'custom2');
 
       settings.excludeKeys = new Set(settings.excludeKeys); // Cast `excludeKeys` into a faster Set lookup
@@ -92,7 +92,7 @@ export function compareEmbaseTestRefs(refs, options) {
                   expect(computedRef).to.have.property(key);
                   //console.log('CMP', key, {given: computedRef[key], wanted: val});
                   expect(computedRef[key]).to.deep.equal(val, `Expected key ${key} to match`);
-                  
+
             });
       });
 }
