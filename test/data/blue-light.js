@@ -1,4 +1,4 @@
-import {expect} from 'chai';
+import {expect} from '@momsfriendlydevco/testa';
 
 /**
 * Manual coding for example references, these are compared in each respective `test/${module}.js` test kit
@@ -74,7 +74,6 @@ export function compareTestRefs(refs, options) {
 	// }}}
 
 	expect(refs).to.be.an('array');
-	// expect(refs).to.have.length(102);
 
 	testRefs.forEach(originalRef => {
 		let computedRef = refs.find(r => r.title == originalRef.title || r.recNumber == originalRef.recNumber);
