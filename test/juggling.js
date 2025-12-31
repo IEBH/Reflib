@@ -1,10 +1,10 @@
-import fspath from 'node:path';
 import * as reflib from '../lib/default.js';
 import {sortBy} from 'lodash-es';
 import temp from 'temp';
 import test, {expect} from '@momsfriendlydevco/testa';
 
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+import config from './config.js';
+
 
 // OPTIONS
 /**
@@ -36,6 +36,7 @@ let juggleOptions = {
 };
 // -------
 
+
 juggleOptions.files
 	.flatMap(item1 => juggleOptions.files.map(item2 => [item1, item2]))
 	.forEach(([file1, file2]) => {
@@ -49,7 +50,7 @@ juggleOptions.files
 		test(`Juggle - Convert ${module1.id} -> ${module2.id}`).timeout('1m').do(t => Promise.resolve()
 			.then(()=> t.stage(`Reading file "${file1}"`))
 			.then(()=> Promise.all([
-				reflib.readFile(`${__dirname}/data/${file1}`),
+				reflib.readFile(`${config.testPath}/data/${file1}`),
 				temp.path({prefix: `reflib-${module1.id}-to-${module2.id}-`, suffix: module2.ext[0]}),
 			]))
 			.then(([refs, outFile]) => {

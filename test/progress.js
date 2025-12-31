@@ -1,7 +1,7 @@
 import test, {expect} from '@momsfriendlydevco/testa';
 import * as reflib from '../lib/default.js';
-import fspath from 'node:path';
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+
+import config from './config.js';
 
 Object.entries(reflib.formats)
 	.filter(([, format]) => format.canRead)
@@ -9,7 +9,7 @@ Object.entries(reflib.formats)
 		test(`${module} - progress reporting while parsing`).timeout('30s').do(t => new Promise((resolve, reject) => {
 			let readBytes = 0; // eslint-disable-line no-unused-vars
 
-			let reader = reflib.readFile(`${__dirname}/data/blue-light${format.ext[0]}`)
+			let reader = reflib.readFile(`${config.testPath}/data/blue-light${format.ext[0]}`)
 
 			reader.emitter
 				.on('progress', ({readBytes, totalSize, refsFound}) =>

@@ -1,12 +1,12 @@
 import test, {expect} from '@momsfriendlydevco/testa';
 import {getRefDoi} from '../lib/default.js';
-import fspath from 'node:path';
 import * as reflib from '../lib/default.js';
 
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+import config from './config.js';
+
 
 test('getRefDoi - update DOI in the reference object if it has the prefix').timeout('1m').do(async ()=> {
-	const filePath = `${__dirname}/data/Dump-Converted test.xml`;
+	const filePath = `${config.testPath}/data/Dump-Converted test.xml`;
 	// console.log("File path:", filePath);
 	let library = await reflib.readFile(filePath);
 

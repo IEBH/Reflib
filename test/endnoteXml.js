@@ -2,14 +2,14 @@ import test, {expect} from '@momsfriendlydevco/testa';
 import {compareTestRefs} from './data/blue-light.js';
 import {createReadStream, createWriteStream} from 'node:fs';
 import * as reflib from '../lib/default.js';
-import fspath from 'node:path';
 import temp from 'temp';
 
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+import config from './config.js';
+
 
 // This test verifies that the XML parser doesn't split things like 'Foo &amp; Bar' into multiple parts when parsing
 test('EndnoteXML - parse a multipart EndNote XML file').timeout('30s').do(()=> Promise.resolve()
-	.then(()=> reflib.readFile(`${__dirname}/data/multipart.xml`))
+	.then(()=> reflib.readFile(`${config.testPath}/data/multipart.xml`))
 	.then(refs => {
 		expect(refs).to.be.an('array');
 		expect(refs).to.have.length(1);
@@ -31,7 +31,7 @@ test('EndnoteXML - Parse a EndNote XML file #1 (via stream reader)').timeout('30
 	.then(()=> new Promise((resolve, reject) => { // Read XML file via emitter
 		let refs = [];
 
-		reflib.readStream('endnoteXml', createReadStream(`${__dirname}/data/blue-light.xml`))
+		reflib.readStream('endnoteXml', createReadStream(`${config.testPath}/data/blue-light.xml`))
 			.on('end', ()=> resolve(refs))
 			.on('error', reject)
 			.on('ref', ref => refs.push(ref))
@@ -41,7 +41,7 @@ test('EndnoteXML - Parse a EndNote XML file #1 (via stream reader)').timeout('30
 
 
 test('EndnoteXML - Read a XML file #2 (via promise)').timeout('30s').do(()=> Promise.resolve()
-	.then(()=> reflib.readFile(`${__dirname}/data/blue-light.xml`))
+	.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.xml`))
 	.then(refs => compareTestRefs(refs))
 );
 
@@ -49,7 +49,7 @@ test('EndnoteXML - Read a XML file #2 (via promise)').timeout('30s').do(()=> Pro
 test('EndnoteXML - Write a XML file #1 (via promise)').timeout('30s').do(t => {
 	let tempPath = temp.path({prefix: 'reflib-', suffix: '.xml'});
 	return Promise.resolve()
-		.then(()=> reflib.readFile(`${__dirname}/data/blue-light.xml`))
+		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.xml`))
 		.then(refs => reflib.writeFile(tempPath, refs))
 		.then(()=> t.log(`XML file available at ${tempPath}`))
 		.then(()=> reflib.readFile(tempPath))
@@ -64,7 +64,7 @@ test('should stream a XML file').timeout('30s').do(t => {
 
 		output.start();
 
-		reflib.readStream('endnoteXml', createReadStream(`${__dirname}/data/blue-light.xml`))
+		reflib.readStream('endnoteXml', createReadStream(`${config.testPath}/data/blue-light.xml`))
 			.on('ref', ref => output.write(ref))
 			.on('end', ()=> output.end().then(resolve))
 			.on('error', reject)
@@ -80,7 +80,7 @@ test('should run a parse -> write -> parse test with all references').timeout('1
 	let originalRefs;
 	return Promise.resolve()
 		.then(()=> t.stage('Reading ref file'))
-		.then(()=> reflib.readFile(`${__dirname}/data/blue-light.xml`))
+		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.xml`))
 		.then(refs => {
 			expect(refs).to.have.length(102);
 			originalRefs = refs;
@@ -101,7 +101,7 @@ test('should run a parse -> write -> parse test with all references').timeout('1
 
 
 test('should extract URLs from an XML file').timeout('30s').do(()=> Promise.resolve()
-	.then(()=> reflib.readFile(`${__dirname}/data/missing-urls.xml`))
+	.then(()=> reflib.readFile(`${config.testPath}/data/missing-urls.xml`))
 	.then(refs => {
 		expect(refs).to.be.an('array');
 		expect(refs).to.have.length(1);

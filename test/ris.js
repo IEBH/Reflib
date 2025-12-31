@@ -3,10 +3,9 @@ import {compareTestRefs} from "./data/blue-light.js";
 import {compareEmbaseTestRefs} from "./data/Embase-aerosols.js";
 import {createReadStream, createWriteStream} from "node:fs";
 import * as reflib from "../lib/default.js";
-import fspath from "node:path";
 import temp from "temp";
 
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+import config from './config.js';
 
 [
 	'blue-light.ris',
@@ -19,7 +18,7 @@ let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url)
 			reflib
 				.readStream(
 					"ris",
-					createReadStream(`${__dirname}/data/${risFile}`) //foreach risFile
+					createReadStream(`${config.testPath}/data/${risFile}`) //foreach risFile
 				)
 				.on("end", () => resolve(refs))
 				.on("error", reject)
@@ -36,7 +35,7 @@ let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url)
 
 	test(`RIS - should read a RIS file #2 (via promise) - ${risFile}`).timeout('30s').do(()=> {
 		reflib
-			.readFile(`${__dirname}/data/${risFile}`) //foreach risFile
+			.readFile(`${config.testPath}/data/${risFile}`) //foreach risFile
 			.then(refs => {
 				if (risFile == "blue-light.ris") {
 					compareTestRefs(refs, {profile: "ris"});
@@ -50,7 +49,7 @@ let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url)
 	test(`RIS - should write a RIS file #1 (via promise)- ${risFile}`).timeout('30s').do(t => {
 		let tempPath = temp.path({ prefix: "reflib-", suffix: ".ris" });
 		return Promise.resolve()
-			.then(() => reflib.readFile(`${__dirname}/data/${risFile}`)) //foreach risFile
+			.then(() => reflib.readFile(`${config.testPath}/data/${risFile}`)) //foreach risFile
 			.then(refs => reflib.writeFile(tempPath, refs))
 			.then(() => t.log(`RIS file available at ${tempPath}`))
 			.then(() => reflib.readFile(tempPath))
@@ -73,7 +72,7 @@ let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url)
 			output.start();
 
 			reflib
-				.readStream("ris", createReadStream(`${__dirname}/data/${risFile}`)) //foreach risFile
+				.readStream("ris", createReadStream(`${config.testPath}/data/${risFile}`)) //foreach risFile
 				.on("ref", (ref) => output.write(ref))
 				.on("end", () => output.end().then(resolve))
 				.on("error", reject);
@@ -96,7 +95,7 @@ let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url)
 			let originalRefs;
 			return Promise.resolve()
 				.then(() => t.stage("Reading ref file"))
-				.then(() => reflib.readFile(`${__dirname}/data/${risFile}`)) //foreach risFile
+				.then(() => reflib.readFile(`${config.testPath}/data/${risFile}`)) //foreach risFile
 				.then((refs) => {
 					expect(refs).to.have.length(102);
 					originalRefs = refs;
@@ -125,7 +124,7 @@ let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url)
 			let originalRefs;
 			return Promise.resolve()
 				.then(() => t.stage("Reading ref file"))
-				.then(() => reflib.readFile(`${__dirname}/data/${risFile}`)) //foreach risFile
+				.then(() => reflib.readFile(`${config.testPath}/data/${risFile}`)) //foreach risFile
 				.then((refs) => {
 					expect(refs).to.have.length(3225);
 					originalRefs = refs;

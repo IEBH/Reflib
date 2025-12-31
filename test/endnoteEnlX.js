@@ -1,17 +1,18 @@
 import test, {expect} from '@momsfriendlydevco/testa';
 import * as reflib from '../lib/default.js';
-import fspath from 'node:path';
 import temp from 'temp';
 
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+import config from './config.js';
+
 
 test('EndnoteX - should parse an EndNoteX file').timeout('30s').do(()=> Promise.resolve()
-	.then(()=> reflib.readFile(`${__dirname}/data/blue-light.enlx`))
+	.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.enlx`))
 	.then(refs => {
 		expect(refs).to.be.an('array');
 		expect(refs).to.have.length(102);
 	})
 );
+
 
 test.skip('should run a parse -> write -> parse test with all references').timeout('1m').do(t => {
 	this.timeout(60 * 1000); //= 1m
@@ -20,7 +21,7 @@ test.skip('should run a parse -> write -> parse test with all references').timeo
 	let originalRefs;
 	return Promise.resolve()
 		.then(()=> t.stage('Reading ref file'))
-		.then(()=> reflib.readFile(`${__dirname}/data/blue-light.enlx`))
+		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.enlx`))
 		.then(refs => {
 			expect(refs).to.have.length(102);
 			originalRefs = refs;

@@ -5,7 +5,7 @@ import * as reflib from '../lib/default.js';
 import fspath from 'node:path';
 import temp from 'temp';
 
-let __dirname = fspath.resolve(fspath.dirname(decodeURI(new URL(import.meta.url).pathname)));
+import config from './config.js';
 
 let medlineOptions = {
 	read: {
@@ -14,11 +14,12 @@ let medlineOptions = {
 	write: {},
 };
 
+
 test('Medline - should parse a Medline file #1 (via stream reader)').timeout('30s').do(()=> Promise.resolve()
 	.then(()=> new Promise((resolve, reject) => {
 		let refs = [];
 
-		reflib.readStream('medline', createReadStream(`${__dirname}/data/blue-light.nbib`), medlineOptions.read)
+		reflib.readStream('medline', createReadStream(`${config.testPath}/data/blue-light.nbib`), medlineOptions.read)
 			.on('end', ()=> resolve(refs))
 			.on('error', reject)
 			.on('ref', ref => refs.push(ref))
@@ -28,7 +29,7 @@ test('Medline - should parse a Medline file #1 (via stream reader)').timeout('30
 
 
 test('Medline - should read a Medline file #2 (via promise)').timeout('30s').do(()=> Promise.resolve()
-	.then(()=> reflib.readFile(`${__dirname}/data/blue-light.nbib`, medlineOptions.read))
+	.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.nbib`, medlineOptions.read))
 	.then(refs => compareTestRefs(refs, {profile: 'medline'}))
 );
 
@@ -36,7 +37,7 @@ test('Medline - should read a Medline file #2 (via promise)').timeout('30s').do(
 test('Medline - should write a Medline file #1 (via promise)').timeout('30s').do(t => {
 	let tempPath = temp.path({prefix: 'reflib-', suffix: '.nbib'});
 	return Promise.resolve()
-		.then(()=> reflib.readFile(`${__dirname}/data/blue-light.nbib`, medlineOptions.read))
+		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.nbib`, medlineOptions.read))
 		.then(refs => reflib.writeFile(tempPath, refs, medlineOptions.write))
 		.then(()=> t.log(`Medline file available at ${tempPath}`))
 		.then(()=> reflib.readFile(tempPath, medlineOptions.read))
@@ -51,7 +52,7 @@ test('Medline - should stream a Medline file').timeout('30s').do(t => {
 
 		output.start();
 
-		reflib.readStream('medline', createReadStream(`${__dirname}/data/blue-light.nbib`), medlineOptions.read)
+		reflib.readStream('medline', createReadStream(`${config.testPath}/data/blue-light.nbib`), medlineOptions.read)
 			.on('ref', ref => output.write(ref))
 			.on('end', ()=> output.end().then(resolve))
 			.on('error', reject)
@@ -69,7 +70,7 @@ test('Medline - should run a parse -> write -> parse test with all references').
 
 	return Promise.resolve()
 		.then(()=> t.stage('Reading ref file'))
-		.then(()=> reflib.readFile(`${__dirname}/data/blue-light.nbib`), medlineOptions.read)
+		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.nbib`), medlineOptions.read)
 		.then(refs => originalRefs = refs)
 		.then(()=> t.stage('Writing ref file'))
 		.then(()=> reflib.writeFile(tempPath, originalRefs, medlineOptions.write))
