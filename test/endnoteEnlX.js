@@ -15,8 +15,6 @@ test('EndnoteX - should parse an EndNoteX file').timeout('30s').do(()=> Promise.
 
 
 test.skip('should run a parse -> write -> parse test with all references').timeout('1m').do(t => {
-	this.timeout(60 * 1000); //= 1m
-
 	let tempPath = temp.path({prefix: 'reflib-', suffix: '.enlx'});
 	let originalRefs;
 	return Promise.resolve()

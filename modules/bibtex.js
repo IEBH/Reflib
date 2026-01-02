@@ -197,8 +197,12 @@ export function writeStream(stream, options) {
 			return Promise.resolve();
 		},
 		write: ref => {
+			// Fetch Reflib type definition
+			let rlType = ref.type && translations.types.rlMap.get(ref.type.toLowerCase());
+			let btType = rlType?.bt || settings.defaultType;
+
 			stream.write(
-				'@' + (ref.type || settings.defaultType) + '{'
+				'@' + btType + '{'
 				+ (ref.recNumber ? `${ref.recNumber},` : '') + '\n'
 				+ Object.entries(ref)
 					.filter(([key, val]) =>
@@ -206,18 +210,21 @@ export function writeStream(stream, options) {
 						&& !settings.omitFields.has(key)
 					)
 					.reduce((buf, [rawKey, rawVal], keyIndex, keys) => {
+						console.log('KEY', rawKey);
+
+						// Fet,$ch Reflib field definition
 						let rlField = translations.fields.rlMap.get(rawKey)
 						if (!rlField && settings.omitUnkown) return buf; // Unknown field mapping - skip if were omitting unknown fields
 
 						let key = rlField ? rlField.bt : rawKey; // Use Reflib->BibTeX field mapping if we have one, otherwise use raw key
 						let val = escape( // Escape input value, either as an Array via join or as a flat string
-							Array.isArray(rawVal)
-								? val.join('\nand ')
-								: rawVal
+							rawKey == 'authors' && Array.isArray(rawVal) ? rawVal.join('\nand ') // Special joining conditions for author field
+							: Array.isArray(rawVal) ? rawVal.join(', ') // Treat other arrays as a CSV
+							: rawVal // Splat everything else as a string
 						);
 
 						return buf + // Return string buffer of ref under construction
-							`\t${key}={${val}}` // Append ref key=val pair to buffer
+							`${key}={${val}}` // Append ref key=val pair to buffer
 							+ (keyIndex < keys.length-1 ? ',' : '') // Append comma (if non-last)
 							+ '\n' // Finish each field with a newline
 					}, '')
