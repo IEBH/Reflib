@@ -79,11 +79,11 @@ export function readStream(stream, options) {
 						&& (
 							(
 								state.fieldWrapper == '{'
-								&& (match = /^(?<value>.+?)(?<!\\%)\}\s*,?\s*\r?\n/s.exec(buffer))
+								&& (match = /^(?<value>.+?)(?<!\\%)\}\s*,?\s*$/sm.exec(buffer))
 							)
 							|| (
 								state.fieldWrapper == '"'
-								&& (match = /^(?<value>.+?)"\s*,?\s*\r?\n/s.exec(buffer))
+								&& (match = /^(?<value>.+?)"\s*,?\s*$/sm.exec(buffer))
 							)
 						)
 					) {
@@ -118,26 +118,26 @@ export function readStream(stream, options) {
 * @returns {Object} The tidied ref
 */
 export function tidyRef(ref, settings) {
-	let tidyRef = {};
+	return Object.fromEntries(
+		Object.entries(ref)
+			.map(([key, val]) => {
+				let rlField = translations.fields.btMap.get(key);
 
-	Object.entries(ref).forEach(([key, val]) => {
-		let rlField = translations.fields.btMap.get(key);
-
-		if (key == 'type') { // Special conversion for type
-			console.log('FIXME: Accepting type', key);
-			ref[key] = val;
-		} else if (settings.omitUnkown && !rlField) { // Omit unknown fields
-			return;
-		} else if (rlField && rlField.array) { // Field needs array casting
-			ref[rlField.rl] = val.split(/\n*\s+and\s+/);
-		} else if (rlField && rlField.rl) { // Known BT field but different RL field
-			ref[rlField.rl] = val;
-		} else if (!settings.omitUnkown) { // Everything else - add field
-			ref[key] = val;
-		}
-	});
-
-	return tidyRef;
+				if (key == 'type') { // Special conversion for type
+					console.log(`FIXME: Accepting raw type "${val}"`);
+					return [key, val];
+				} else if (settings.omitUnkown && !rlField) { // Omit unknown fields
+					return;
+				} else if (rlField && rlField.array) { // Field needs array casting
+					return [rlField.rl, val.split(/\n*\s+and\s+/)];
+				} else if (rlField && rlField.rl) { // Known BT field but different RL field
+					return [rlField.rl, val];
+				} else if (!settings.omitUnkown) { // Everything else - add field
+					return [key, val];
+				}
+			})
+			.filter(Boolean) // Remove duds
+	);
 }
 
 
@@ -247,7 +247,7 @@ export let translations = {
 		collection: [
 			// Order by priority (highest at top)
 			{rl: 'address', bt: 'address'},
-			{rl: 'author', bt: 'author', array: true},
+			{rl: 'authors', bt: 'author', array: true},
 			{rl: 'doi', bt: 'doi'},
 			{rl: 'edition', bt: 'edition'},
 			{rl: 'editor', bt: 'editor'},
@@ -291,7 +291,7 @@ export let translations = {
 	types: {
 		collection: [
 			// Order by priority (highest at top)
-			{rl: 'article', bt: 'Article'},
+			{rl: 'journalArticle', bt: 'Article'},
 			{rl: 'book', bt: 'Book'},
 			{rl: 'bookSection', bt: 'InBook'},
 			{rl: 'conferencePaper', bt: 'Conference'},
@@ -327,7 +327,7 @@ export function setup() {
 
 	// Create lookup object of ref.types with key as .rl / val as the full object
 	translations.types.collection.forEach(c => {
-		if (c.rl) translations.types.rlMap.set(c.rl, c);
-		if (c.bt) translations.types.btMap.set(c.bt, c);
+		if (c.rl) translations.types.rlMap.set(c.rl.toLowerCase(), c);
+		if (c.bt) translations.types.btMap.set(c.bt.toLowerCase(), c);
 	});
 }
