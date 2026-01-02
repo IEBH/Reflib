@@ -36,40 +36,40 @@ Each reference has the following standardized fields, these are translated from 
 
 | Field            | Type            | Description                                                                            |
 |------------------|-----------------|----------------------------------------------------------------------------------------|
-| recNumber        | `number`        | The sorting number of the reference. Not present in RIS files                          |
-| type             | `string`        | A supported [reference type](#reference-types) (e.g. journalArticle)                   |
-| title            | `string`        | The reference's main title                                                             |
-| journal          | `string`        | The reference's secondary title, this is usually the journal for most published papers |
-| authors          | `array<string>` | An array of each Author in the originally specified format                             |
-| date             | `string`        | The raw, internal date of the reference                                                |
-| urls             | `array<string>` | An array of each URL for the reference                                                 |
-| pages            | `string`        | The page reference, usually in the format `123-4`                                      |
-| volume           | `string`        |                                                                                        |
-| number           | `string`        |                                                                                        |
-| isbn             | `string`        |                                                                                        |
-| abstract         | `string`        |                                                                                        |
-| label            | `string`        |                                                                                        |
-| caption          | `string`        |                                                                                        |
-| notes            | `string`        |                                                                                        |
-| address          | `string`        |                                                                                        |
-| researchNotes    | `string`        |                                                                                        |
-| keywords         | `array<string>` | Optional list of keywords that apply to the reference                                  |
-| accessDate       | `string`        |                                                                                        |
-| accession        | `string`        | [Accession numbers spec](https://support.nlm.nih.gov/knowledgebase/article/KA-03434/en-us), can sometimes be the PubMed ID |
-| doi              | `string`        |                                                                                        |
-| section          | `string`        |                                                                                        |
-| language         | `string`        |                                                                                        |
-| researchNotes    | `string`        |                                                                                        |
-| databaseProvider | `string`        |                                                                                        |
-| database         | `string`        |                                                                                        |
-| workType         | `string`        |                                                                                        |
-| custom1          | `string`        |                                                                                        |
-| custom2          | `string`        |                                                                                        |
-| custom3          | `string`        |                                                                                        |
-| custom4          | `string`        |                                                                                        |
-| custom5          | `string`        |                                                                                        |
-| custom6          | `string`        |                                                                                        |
-| custom7          | `string`        |                                                                                        |
+| recNumber        | `Number`        | The sorting number of the reference. Not present in RIS files                          |
+| type             | `String`        | A supported [reference type](#reference-types) (e.g. journalArticle)                   |
+| title            | `String`        | The reference's main title                                                             |
+| journal          | `String`        | The reference's secondary title, this is usually the journal for most published papers |
+| authors          | `Array<String>` | An array of each Author in the originally specified format                             |
+| date             | `String`        | The raw, internal date of the reference                                                |
+| urls             | `Array<String>` | An array of each URL for the reference                                                 |
+| pages            | `String`        | The page reference, usually in the format `123-4`                                      |
+| volume           | `String`        |                                                                                        |
+| number           | `String`        |                                                                                        |
+| isbn             | `String`        |                                                                                        |
+| abstract         | `String`        |                                                                                        |
+| label            | `String`        |                                                                                        |
+| caption          | `String`        |                                                                                        |
+| notes            | `String`        |                                                                                        |
+| address          | `String`        |                                                                                        |
+| researchNotes    | `String`        |                                                                                        |
+| keywords         | `Array<String>` | Optional list of keywords that apply to the reference                                  |
+| accessDate       | `String`        |                                                                                        |
+| accession        | `String`        | [Accession numbers spec](https://support.nlm.nih.gov/knowledgebase/article/KA-03434/en-us), can sometimes be the PubMed ID |
+| doi              | `String`        |                                                                                        |
+| section          | `String`        |                                                                                        |
+| language         | `String`        |                                                                                        |
+| researchNotes    | `String`        |                                                                                        |
+| databaseProvider | `String`        |                                                                                        |
+| database         | `String`        |                                                                                        |
+| workType         | `String`        |                                                                                        |
+| custom1          | `String`        |                                                                                        |
+| custom2          | `String`        |                                                                                        |
+| custom3          | `String`        |                                                                                        |
+| custom4          | `String`        |                                                                                        |
+| custom5          | `String`        |                                                                                        |
+| custom6          | `String`        |                                                                                        |
+| custom7          | `String`        |                                                                                        |
 
 
 Reference Types
