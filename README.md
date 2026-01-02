@@ -12,6 +12,7 @@ Compatibility
 
 | Library                | Extension(s)    | Read               | Write              |
 |------------------------|-----------------|--------------------|--------------------|
+| BibTeX                 | `.bib`          | :x:                | :x:                |
 | Comma Separated Values | `.csv`          | :x:                | :x:                |
 | EndNote ENL            | `.enl`          | :heavy_check_mark: | (untested)         |
 | EndNote ENLX           | `.enlx`         | :heavy_check_mark: | :x:                |

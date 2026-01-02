@@ -1,3 +1,4 @@
+export * as bibtex from './bibtex.js';
 export * as json from './json.js';
 export * as endnoteEnl from './endnoteEnl.js';
 export * as endnoteEnlX from './endnoteEnlX.js';
