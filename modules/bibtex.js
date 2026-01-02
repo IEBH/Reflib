@@ -48,8 +48,6 @@ export function readStream(stream, options) {
 				buffer += chunkBuffer.toString(); // Append incomming data to the partial-buffer we're holding in memory
 
 				while (true) {
-					if (mode == MODES.FIELDS) console.log('FIELD PEEK [[[', buffer.slice(0, 10) + ']]]');
-
 					let match; // Regex storage for match groups
 					if ((mode == MODES.REF) && (match = /^\s*@(?<type>[\w]+?)\s*{(?<id>.*?),/s.exec(buffer))) {
 						if (settings.recNumberNumeric && isFinite(match.groups.id)) { // Accept numeric recNumber
@@ -58,7 +56,6 @@ export function readStream(stream, options) {
 							ref.recNumber = +match.groups.id;
 						} // Implied else - No ID, ignore
 
-						console.log('START REF', match.groups);
 						ref.type = match.groups.type;
 						mode = MODES.FIELDS;
 						state = null;
@@ -66,7 +63,6 @@ export function readStream(stream, options) {
 						mode = MODES.FIELD_START;
 						state = {field: match.groups.field};
 					} else if (mode == MODES.FIELDS && (match = /^\s*\}\s*/s.exec(buffer))) { // End of ref
-						console.log('Pre-tidy ref', ref);
 						emitter.emit('ref', tidyRef(ref, settings));
 						mode = MODES.REF;
 						ref = {};
@@ -97,8 +93,6 @@ export function readStream(stream, options) {
 						} else { // Populate initial value
 							ref[state.field] = unescape(match.groups.value);
 						}
-						if (state.field == 'language') debugger;
-						console.log('... field', state.field, '=', ref[state.field]);
 						state = null;
 					} else { // Implied else - No match to buffer, let it fill and process next data block
 						break;
