@@ -168,7 +168,7 @@ export function unescape(str) {
 * @returns {String} BibTeX encoded string
 */
 export function escape(str) {
-	return str
+	return (''+str)
 		.replace(/\&/g, '{\\&}')
 		.replace(/%/g, '{\\%}')
 }
@@ -185,6 +185,7 @@ export function escape(str) {
 * @param {string} [options.defaultType='Misc'] Default citation type to assume when no other type is specified
 * @param {string} [options.delimeter='\r'] How to split multi-line items
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
+* @param {Set} [options.omitFields] Set of special fields to always omit, either because we are ignoring or because we have special treatment for them
 *
 * @returns {Object} A writable stream analogue defined in `modules/interface.js`
 */
@@ -193,9 +194,9 @@ export function writeStream(stream, options) {
 		defaultType: 'Misc',
 		delimeter: '\n',
 		omitUnkown: false,
+		omitFields: new Set(['recNumber', 'type']),
 		...options,
 	};
-
 
 	return {
 		start() {
@@ -203,25 +204,31 @@ export function writeStream(stream, options) {
 		},
 		write: ref => {
 			stream.write(
-				Object.entries(ref)
-					.filter(([key, val]) => !settings.omitUnkown || translations.fields.rlMap.has(key))
-					.reduce(([key, val], buf) => {
-						let rlField = translations.fields.rlMap.get(key)
-						if (!rlField && settings.omitUnkown) return buf; // Unknown field mapping - skip
+				'@' + (ref.type || settings.defaultType) + '{'
+				+ (ref.recNumber ? `${ref.recNumber},` : '') + '\n'
+				+ Object.entries(ref)
+					.filter(([key, val]) =>
+						val // We have a non-nullish val
+						&& !settings.omitFields.has(key)
+					)
+					.reduce((buf, [rawKey, rawVal], keyIndex, keys) => {
+						let rlField = translations.fields.rlMap.get(rawKey)
+						if (!rlField && settings.omitUnkown) return buf; // Unknown field mapping - skip if were omitting unknown fields
 
-						// Escape closing braces
-						val = val.replace(/}/g, '\%}');
+						let key = rlField ? rlField.bt : rawKey; // Use Reflib->BibTeX field mapping if we have one, otherwise use raw key
+						let val = escape( // Escape input value, either as an Array via join or as a flat string
+							Array.isArray(rawVal)
+								? val.join('\nand ')
+								: rawVal
+						);
 
-						// Append ref key=val pair to buffer
-						if (rlField && rlField.bt && rlField.array) { // Has BT field mapping (and its an array)
-							return buf + `\n${rlField.bt}={` + val.join('\nand ') + '}';
-						} else if (rlField && rlField.bt) { // Has BT field mapping (scalar)
-
-							return buf + `\n${rlField.bt}={${val}}`;
-						} else { // Unknown field but output anyway
-							return buf + `\n${key}={${val}}`;
-						}
+						return buf + // Return string buffer of ref under construction
+							`\t${key}={${val}}` // Append ref key=val pair to buffer
+							+ (keyIndex < keys.length-1 ? ',' : '') // Append comma (if non-last)
+							+ '\n' // Finish each field with a newline
 					}, '')
+				+ '}\n'
+				+ (true && '\n') // FIXME: Only append spacer if not last
 			);
 
 			return Promise.resolve();
