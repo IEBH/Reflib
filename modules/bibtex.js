@@ -22,6 +22,7 @@ const MODES = {
 * @param {Object} [options] Additional options to use when parsing
 * @param {Boolean} [options.recNumberNumeric=true] Only process the BibTeX ID into a recNumber if its a finite numeric, otherwise disguard
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
+* @param {String} [options.fallbackType='unkown'] Reflib fallback type if the incoming type is unrecognised or unsupported
 *
 * @returns {Object} A readable stream analogue defined in `modules/interface.js`
 */
@@ -29,6 +30,7 @@ export function readStream(stream, options) {
 	let settings = {
 		recNumberNumeric: true,
 		omitUnknown: false,
+		fallbackType: 'unknown',
 		...options,
 	};
 
@@ -124,8 +126,10 @@ export function tidyRef(ref, settings) {
 				let rlField = translations.fields.btMap.get(key);
 
 				if (key == 'type') { // Special conversion for type
-					console.log(`FIXME: Accepting raw type "${val}"`);
-					return [key, val];
+					let rlType = ref.type && translations.types.btMap.get(val.toLowerCase());
+					return rlType
+						? [key, rlType.rl] // Can translate incoming type to Reflib type
+						: [key, settings.fallbackType] // Unknown Reflib type varient
 				} else if (settings.omitUnkown && !rlField) { // Omit unknown fields
 					return;
 				} else if (rlField && rlField.array) { // Field needs array casting

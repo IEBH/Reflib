@@ -21,6 +21,7 @@ test('BibTeX - should parse a file').timeout('30s').do(t => Promise.resolve()
 
 		expect(ref).to.have.property('title', 'Recent advances in acne pathogenesis: implications for therapy');
 		expect(ref).to.have.property('journal', 'Am J Clin Dermatol');
+		expect(ref).to.have.property('type', 'journalArticle');
 		// Omitted: year
 		expect(ref).to.have.property('volume', '15');
 		expect(ref).to.have.property('number', '6');
@@ -89,7 +90,7 @@ test('BibTeX - output a file').timeout('30s').do(t => {
 			expect(contents).to.match(/@Article\{910,/sm);
 
 			let ref = /@Article{910,.*?^}/sm.exec(contents)?.[0]; // Pick a random ref output to examine
-			console.log('RAW REF', '[[[', ref, ']]]');
+			t.dump({ref910: ref});
 			expect(ref).to.match(/@Article\{910,/sm);
 			expect(ref).to.match(/^title=\{Recent advances.+therapy\}/sm);
 			expect(ref).to.match(/^author=\{Das, S\..+R\. V\.\}/sm);
