@@ -231,6 +231,9 @@ export function writeStream(stream, options) {
 
 			return Promise.resolve();
 		},
+		middle() {
+			stream.write('\n');
+		},
 		end() {
 			return new Promise((resolve, reject) =>
 				stream.end(err => err ? reject(err) : resolve())

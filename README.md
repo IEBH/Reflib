@@ -252,7 +252,7 @@ writeStream(moduleId, outputStream, options)
 Available: Node + Browser
 Low level worker of `writeFile()`.
 Return an object with methods to call to write to a given stream.
-The returned object will have a `start()`, `end()` and `write(ref)` function which can be called to write to the original input stream.
+The returned object will have a `start()`, `end()` and `write(ref)` (optional `middle(ref)`) function which can be called to write to the original input stream.
 
 ```javascript
 // Convert a JSON file to EndNoteXML via a stream

@@ -30,6 +30,7 @@ export function readStream(stream, options) {
 * @returns {Object} An object which exposes methods to call to start, write and end the writing process. All methods MUST return a Promise
 * @property {function<Promise>} start Function to call when beginning to write
 * @property {function<Promise>} write Function called as `(ref)` when writing a single ref
+* @property {function<promise>} [middle] Function to call after `write()` for each reference if the reference is NOT last, this works similar to `Array.prototype.join()`
 * @property {function<Promise>} end Function to call when finishing writing, must resolve its Promise when the stream has closed successfully
 */
 export function writeStream(stream, refs, options) {
