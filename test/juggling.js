@@ -22,6 +22,7 @@ let juggleOptions = {
 	sortBy: 'title',
 	files: [
 		// Commented out files are not yet supported
+		'blue-light.bib', // FIXME: File only has 30 refs?
 		'blue-light.enl',
 		// 'blue-light.enlx',
 		// 'blue-light.htm',
