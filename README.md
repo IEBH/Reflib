@@ -12,7 +12,7 @@ Compatibility
 
 | Library                | Extension(s)    | Read               | Write              |
 |------------------------|-----------------|--------------------|--------------------|
-| BibTeX                 | `.bib`          | :x:                | :x:                |
+| BibTeX                 | `.bib`          | :heavy_check_mark: | :heavy_check_mark: |
 | Comma Separated Values | `.csv`          | :x:                | :x:                |
 | EndNote ENL            | `.enl`          | :heavy_check_mark: | (untested)         |
 | EndNote ENLX           | `.enlx`         | :heavy_check_mark: | :x:                |
@@ -25,6 +25,8 @@ Compatibility
 
 **Notes on different formats**:
 
+* Not all formats are one-to-one translations, some have differing field definitions or type definitions
+* BibTeX support is only provided for "well-formatted" files - i.e. correct use of newlines rather than one-single-line-per-ref, this is to avoid having to implement a full AST parser
 * Medline seems to implement a totally different [publication type system](https://www.nlm.nih.gov/mesh/pubtypes.html) than others. Reflib will attempt to guess the best match, storing the original type in the `medlineType` key. Should the citation library be exported _back_ to Medline / `.nbib` files this key will take precedence to avoid data loss
 
 
