@@ -210,9 +210,7 @@ export function writeStream(stream, options) {
 						&& !settings.omitFields.has(key)
 					)
 					.reduce((buf, [rawKey, rawVal], keyIndex, keys) => {
-						console.log('KEY', rawKey);
-
-						// Fet,$ch Reflib field definition
+						// Fetch Reflib field definition
 						let rlField = translations.fields.rlMap.get(rawKey)
 						if (!rlField && settings.omitUnkown) return buf; // Unknown field mapping - skip if were omitting unknown fields
 
@@ -229,7 +227,6 @@ export function writeStream(stream, options) {
 							+ '\n' // Finish each field with a newline
 					}, '')
 				+ '}\n'
-				+ (true && '\n') // FIXME: Only append spacer if not last
 			);
 
 			return Promise.resolve();

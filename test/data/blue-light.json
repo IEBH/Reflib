@@ -87,7 +87,11 @@
 			"Immunity, Innate",
 			"Photochemotherapy/methods",
 			"Propionibacterium acnes/isolation & purification"
-		]
+		],
+		"urls": [
+			"https://doi.org/10.1007/s40257-014-0099-z"
+		],
+		"language": "eng"
 	},
 	{
 		"recNumber": "966",

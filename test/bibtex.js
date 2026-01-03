@@ -46,12 +46,17 @@ test('BibTeX - should parse a file').timeout('30s').do(t => Promise.resolve()
 
 		expect(ref).to.have.property('keywords');
 		expect(ref.keywords).to.be.an('array');
-		/* FIXME: Not sure if this is right or wrong
+		/* FIXME: Input bib file is wrong here, needs correct keyword population
 		expect(ref.keywords).to.deep.equal([
-			'Acne Vulgaris',
-			'drug therapy/microbiology/pathology Administration, Cutaneous Anti-Bacterial Agents/administration & dosage',
-			'therapeutic use Dermatologic Agents/administration & dosage',
-			'therapeutic use Drug Therapy, Combination Humans Immunity, Innate Photochemotherapy/methods Propionibacterium acnes/isolation & purification',
+			'Acne Vulgaris/*drug therapy/microbiology/pathology',
+			'Administration, Cutaneous',
+			'Anti-Bacterial Agents/administration & dosage/*therapeutic use',
+			'Dermatologic Agents/administration & dosage/*therapeutic use',
+			'Drug Therapy, Combination',
+			'Humans',
+			'Immunity, Innate',
+			'Photochemotherapy/methods',
+			'Propionibacterium acnes/isolation & purification',
 		]);
 		*/
 
@@ -92,6 +97,6 @@ test('BibTeX - output a file').timeout('30s').do(t => {
 			expect(ref).to.match(/^number=\{6\}/sm);
 			expect(ref).to.match(/^pages=\{479.88\}/sm);
 			expect(ref).to.match(/^abstract=\{Acne pathogenesis.+\}/sm);
-			expect(ref).to.match(/^language=\{eng\}/);
+			expect(ref).to.match(/^language=\{eng\}/sm);
 		})
 });
