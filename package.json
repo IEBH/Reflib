@@ -57,7 +57,7 @@
   },
   "devDependencies": {
     "@momsfriendlydevco/eslint-config": "^2.3.1",
-    "@momsfriendlydevco/testa": "^1.0.0",
+    "@momsfriendlydevco/testa": "^1.1.2",
     "eslint": "^9.31.0",
     "nodemon": "^3.1.9",
     "temp": "^0.9.4",
