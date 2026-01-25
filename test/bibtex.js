@@ -11,11 +11,11 @@ test('BibTeX - should parse a file').timeout('30s').do(t => Promise.resolve()
 	.then(refs => {
 		t.dump(refs);
 		expect(refs).to.be.an('array');
-		// expect(refs).to.have.length(102); // FIXME: .bib field mismatches with actual ref file
+		expect(refs).to.have.length(102); // FIXME: .bib field mismatches with actual ref file
 		return refs;
 	})
 	.then(refs => { // Pick a random ref to interrogate
-		let ref = refs.find(ref => ref.recNumber == 910);
+		let ref = refs.find(ref => ref.recNumber == 3);
 		t.dump(ref);
 		expect(ref).to.be.an('object');
 
@@ -83,15 +83,15 @@ test('BibTeX - output a file').timeout('30s').do(t => {
 		})
 		.then(()=> t.stage('Writing ref file'))
 		.then(()=> reflib.writeFile(tempPath, originalRefs))
-		.then(()=> t.log(`BibTeX file available at ${tempPath}`))
+		.then(()=> t.log(`BibTeX output file available at ${tempPath}`))
 		.then(()=> t.stage('Re-reading ref file'))
 		.then(()=> readFile(tempPath, 'utf8'))
 		.then(contents => {
-			expect(contents).to.match(/@Article\{910,/sm);
+			expect(contents).to.match(/@Article\{RN910,/sm);
 
-			let ref = /@Article{910,.*?^}/sm.exec(contents)?.[0]; // Pick a random ref output to examine
+			let ref = /@Article{RN910,.*?^}/sm.exec(contents)?.[0]; // Pick a random ref output to examine
 			t.dump({ref910: ref});
-			expect(ref).to.match(/@Article\{910,/sm);
+			expect(ref).to.match(/@Article\{RN910,/sm);
 			expect(ref).to.match(/^title=\{Recent advances.+therapy\}/sm);
 			expect(ref).to.match(/^author=\{Das, S\..+R\. V\.\}/sm);
 			expect(ref).to.match(/^volume=\{15\}/sm);

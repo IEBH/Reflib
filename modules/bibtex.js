@@ -21,16 +21,20 @@ const MODES = {
 * @param {Stream} stream The readable stream to accept data from
 * @param {Object} [options] Additional options to use when parsing
 * @param {Boolean} [options.recNumberNumeric=true] Only process the BibTeX ID into a recNumber if its a finite numeric, otherwise disguard
+* @param {Boolean} [options.recNumberRNPrefix=true] Accept `RN${NUMBER}` as recNumber if present
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
 * @param {String} [options.fallbackType='unkown'] Reflib fallback type if the incoming type is unrecognised or unsupported
+* @param {Set<String>} [options.fieldsOverwrite] Set of field names where the value is clobbered rather than appended if discovered more than once
 *
 * @returns {Object} A readable stream analogue defined in `modules/interface.js`
 */
 export function readStream(stream, options) {
 	let settings = {
 		recNumberNumeric: true,
+		recNumberRNPrefix: true,
 		omitUnknown: false,
 		fallbackType: 'unknown',
+		fieldsOverwrite: new Set(['type']),
 		...options,
 	};
 
@@ -51,9 +55,11 @@ export function readStream(stream, options) {
 
 				while (true) {
 					let match; // Regex storage for match groups
-					if ((mode == MODES.REF) && (match = /^\s*@(?<type>[\w]+?)\s*{(?<id>.*?),/s.exec(buffer))) {
+					if ((mode == MODES.REF) && (match = /^\s*@(?<type>\w+?)\s*\{(?<id>.*?),/s.exec(buffer))) {
 						if (settings.recNumberNumeric && isFinite(match.groups.id)) { // Accept numeric recNumber
 							ref.recNumber = +match.groups.id;
+						} else if (settings.recNumberRNPrefix && /^RN\d+$/.test(match.groups.id)) {
+							ref.recNumber = +match.groups.id.slice(2);
 						} else if (!settings.recNumberNumeric && match.groups.id) { // Non numeric / finite ID - but we're allowed to accept it anyway
 							ref.recNumber = +match.groups.id;
 						} // Implied else - No ID, ignore
@@ -90,7 +96,9 @@ export function readStream(stream, options) {
 						)
 					) {
 						mode = MODES.FIELDS;
-						if (ref[state.field] !== undefined) { // Already have content - append
+						if (ref[state.field] !== undefined && settings.fieldsOverwrite.has(state.field)) { // Already have content - and we should overwrite
+							ref[state.field] = unescape(match.groups.value);
+						} else if (ref[state.field] !== undefined) { // Already have content - append
 							ref[state.field] += '\n' + unescape(match.groups.value);
 						} else { // Populate initial value
 							ref[state.field] = unescape(match.groups.value);
@@ -184,6 +192,7 @@ export function escape(str) {
 * @param {string} [options.delimeter='\r'] How to split multi-line items
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
 * @param {Set} [options.omitFields] Set of special fields to always omit, either because we are ignoring or because we have special treatment for them
+* @param {Boolean} [options.recNumberRNPrefix=true] Rewrite recNumber fields as `RN${NUMBER}`
 *
 * @returns {Object} A writable stream analogue defined in `modules/interface.js`
 */
@@ -193,6 +202,7 @@ export function writeStream(stream, options) {
 		delimeter: '\n',
 		omitUnkown: false,
 		omitFields: new Set(['recNumber', 'type']),
+		recNumberRNPrefix: true,
 		...options,
 	};
 
@@ -207,7 +217,11 @@ export function writeStream(stream, options) {
 
 			stream.write(
 				'@' + btType + '{'
-				+ (ref.recNumber ? `${ref.recNumber},` : '') + '\n'
+				+ (
+					ref.recNumber && settings.recNumberRNPrefix ? `RN${ref.recNumber},`
+					: ref.recNumber ? `${ref.recNumber},`
+					: ''
+				) + '\n'
 				+ Object.entries(ref)
 					.filter(([key, val]) =>
 						val // We have a non-nullish val
