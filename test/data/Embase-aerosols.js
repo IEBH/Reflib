@@ -1,4 +1,4 @@
-import { expect } from 'chai';
+import {expect} from '@momsfriendlydevco/testa';
 
 /**
 * Manual coding for example references, these are compared in each respective `test/${module}.js` test kit

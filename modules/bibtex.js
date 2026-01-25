@@ -131,7 +131,7 @@ export function tidyRef(ref, settings) {
 	return Object.fromEntries(
 		Object.entries(ref)
 			.map(([key, val]) => {
-				let rlField = translations.fields.btMap.get(key);
+				let rlField = translations.fields.btMap.get(key.toLowerCase());
 
 				if (key == 'type') { // Special conversion for type
 					let rlType = ref.type && translations.types.btMap.get(val.toLowerCase());
@@ -283,6 +283,7 @@ export let translations = {
 			{rl: 'title', bt: 'booktitle'},
 			{rl: 'title', bt: 'title'},
 			{rl: 'volume', bt: 'volume'},
+			{rl: 'isbn', bt: 'issn'},
 
 			// Misc
 			{bt: 'month'}, // Combined into {rl:'date'}
@@ -325,6 +326,9 @@ export let translations = {
 			{rl: 'thesis', bt: 'PHDThesis'},
 			{rl: 'unknown', bt: 'Misc'},
 			{rl: 'unpublished', bt: 'Unpublished'},
+
+			// Type aliases
+			{rl: 'journalArticle', bt: 'Journal Article'},
 
 			// Unknown how to translate these
 			{rl: 'Misc', bt: 'Booklet'},
