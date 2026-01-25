@@ -350,13 +350,16 @@ export let translations = {
 export function setup() {
 	// Create lookup object of translations.fields with key as .rl / val as the full object
 	translations.fields.collection.forEach(c => {
-		if (c.rl) translations.fields.rlMap.set(c.rl, c);
+		if (c.rl) translations.fields.rlMap.set(c.rl.toLowerCase(), c);
 		if (c.bt) translations.fields.btMap.set(c.bt, c);
 	});
 
 	// Create lookup object of ref.types with key as .rl / val as the full object
 	translations.types.collection.forEach(c => {
-		if (c.rl) translations.types.rlMap.set(c.rl.toLowerCase(), c);
-		if (c.bt) translations.types.btMap.set(c.bt.toLowerCase(), c);
+		// Append each type to the set, accepting the first in each case as the priority
+		let rlLc = c.rl.toLowerCase();
+		let btLc = c.bt.toLowerCase();
+		if (c.rl && !translations.types.rlMap.has(rlLc)) translations.types.rlMap.set(rlLc, c);
+		if (c.bt && !translations.types.btMap.has(btLc)) translations.types.btMap.set(btLc, c);
 	});
 }
