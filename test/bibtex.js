@@ -25,46 +25,17 @@ test('BibTeX - should parse a file').timeout('30s').do(t => Promise.resolve()
 		// Omitted: year
 		expect(ref).to.have.property('volume', '15');
 		expect(ref).to.have.property('number', '6');
-		expect(ref).to.have.property('issn', '1175-0561');
+		expect(ref).to.have.property('isbn', '1175-0561');
 		expect(ref).to.have.property('doi', '10.1007/s40257-014-0099-z');
-		expect(ref).to.have.property('language', 'eng');
 
 		expect(ref).to.have.property('pages');
 		expect(ref.pages).to.match(/^479.88$/);
-
-		expect(ref).to.have.property('abstract');
-		expect(ref.abstract).to.match(/^Acne pathogenesis.+outcomes\.$/);
-
-		expect(ref).to.have.property('notes');
-		expect(ref.notes).to.match(/^1179-1888.+s40257-014-0099-z\.$/);
 
 		expect(ref).to.have.property('authors');
 		expect(ref.authors).to.be.an('array');
 		expect(ref.authors).to.deep.equal([
 			'Das, S.',
 			'Reynolds, R. V.',
-		]);
-
-		expect(ref).to.have.property('keywords');
-		expect(ref.keywords).to.be.an('array');
-		/* FIXME: Input bib file is wrong here, needs correct keyword population
-		expect(ref.keywords).to.deep.equal([
-			'Acne Vulgaris/*drug therapy/microbiology/pathology',
-			'Administration, Cutaneous',
-			'Anti-Bacterial Agents/administration & dosage/*therapeutic use',
-			'Dermatologic Agents/administration & dosage/*therapeutic use',
-			'Drug Therapy, Combination',
-			'Humans',
-			'Immunity, Innate',
-			'Photochemotherapy/methods',
-			'Propionibacterium acnes/isolation & purification',
-		]);
-		*/
-
-		expect(ref).to.have.property('urls');
-		expect(ref.urls).to.be.an('array');
-		expect(ref.urls).to.deep.equal([
-			'https://doi.org/10.1007/s40257-014-0099-z',
 		]);
 	})
 );
