@@ -40,9 +40,12 @@ test('EndnoteXML - Parse a EndNote XML file #1 (via stream reader)').timeout('30
 );
 
 
-test('EndnoteXML - Read a XML file #2 (via promise)').timeout('30s').do(()=> Promise.resolve()
+test('EndnoteXML - Read a XML file #2 (via promise)').timeout('30s').do(t => Promise.resolve()
 	.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.xml`))
-	.then(refs => compareTestRefs(refs))
+	.then(refs => {
+		t.dump(refs);
+		return compareTestRefs(refs);
+	})
 );
 
 
@@ -55,6 +58,15 @@ test('EndnoteXML - Write a XML file #1 (via promise)').timeout('30s').do(t => {
 		.then(()=> reflib.readFile(tempPath))
 		.then(refs => compareTestRefs(refs))
 });
+
+
+test('EndnoteXML - parse a Zotero exported EndNote XML file').timeout('30s').do(t => Promise.resolve()
+	.then(()=> reflib.readFile(`${config.testPath}/data/blue-light-zotero.xml`))
+	.then(refs => {
+		t.dump(refs);
+		return compareTestRefs(refs);
+	})
+);
 
 
 test('should stream a XML file').timeout('30s').do(t => {
@@ -93,9 +105,27 @@ test('should run a parse -> write -> parse test with all references').timeout('1
 		.then(newRefs => {
 			t.stage('Comparing', newRefs.length, 'references');
 			expect(newRefs).to.have.length(originalRefs.length);
-			newRefs.forEach((ref, refOffset) =>
+			newRefs.forEach((ref, refOffset) => {
+
+				/*
+				console.log('Compare', {
+					original: originalRefs[refOffset],
+					ref,
+				});
+
+				Object.entries(originalRefs[refOffset])
+					.forEach(([key, expectedVal]) => {
+						console.log({
+							key,
+							'expected': originalRefs[refOffset][key],
+							'got_____': newRefs[refOffset][key],
+						});
+						expect(newRefs[refOffset]).to.have.deep.property(key, expectedVal)
+					});
+				*/
+
 				expect(ref).to.deep.equal(originalRefs[refOffset])
-			);
+			});
 		})
 });
 
