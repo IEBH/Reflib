@@ -346,7 +346,7 @@ export function xmlEscape(str) {
 export function xmlUnescape(str) {
 	return ('' + str)
 		.replace(/&amp;/g, '&')
-		.replace(/&#13;/g, '\r')
+		.replace(/&#(xD|13);/g, '\r')
 		.replace(/&lt;/g, '<')
 		.replace(/&gt;/g, '>')
 		.replace(/&quot;/g, '"')
