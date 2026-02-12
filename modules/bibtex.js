@@ -206,7 +206,7 @@ export function writeStream(stream, options) {
 		defaultType: 'Misc',
 		delimeter: '\n',
 		omitUnkown: false,
-		omitFields: new Set(['key', 'recNumber', 'type']),
+		omitFields: new Set(['recNumber', 'type']),
 		recNumberRNPrefix: true,
 		recNumberKey: true,
 		...options,
@@ -217,11 +217,12 @@ export function writeStream(stream, options) {
 			return Promise.resolve();
 		},
 		write: ref => {
-			// Allocate default type if we don't already have one
-			ref.type ||= settings.defaultType;
-
+			if (!ref.key) {
+				ref.key = generateCitationKey(ref);
+			}
+			// console.log("Here is the id",ref.key)
 			// Fetch Reflib type definition
-			let rlType = translations.types.rlMap.get(ref.type.toLowerCase());
+			let rlType = (ref.type || settings.defaultType) && translations.types.rlMap.get(ref.type.toLowerCase());
 			let btType = rlType?.bt || settings.defaultType;
 
 			stream.write(
@@ -268,6 +269,25 @@ export function writeStream(stream, options) {
 			);
 		},
 	};
+}
+
+
+/**
+* Generate a citation key from first author + year
+* Example: "Roomruangwong2020"
+*/
+function generateCitationKey(ref) {
+	let author = 'Anon';
+	if (ref.authors && ref.authors.length > 0) {
+		author = ref.authors[0].split(',')[0];
+	}
+
+	let year = 'n.d.';
+	if (ref.year) {
+		year = ref.year;
+	}
+
+	return `${author}${year}`;
 }
 
 
