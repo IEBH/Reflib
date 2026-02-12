@@ -40,8 +40,6 @@ export function readStream(stream) {
 	 * @type {Object}
 	 */
 	let parserOptions = {
-		xmlMode: true,
-		decodeEntities: false, // Handled below
 		onopentag(name, attrs) {
 			textAppend = false;
 			stack.push({
@@ -63,48 +61,67 @@ export function readStream(stream) {
 			}
 		},
 		ontext(text) {
-			let parentName = stack[stack.length - 1]?.name;
-			let gParentName = stack[stack.length - 2]?.name;
+			let parentName = stack.at(-1)?.name;
+			let gParentName = stack.at(-2)?.name;
+			if (text && text.startsWith('\n')) { // Need to crop text - likely a prettified XML output or Zotero style XML file
+				text = text
+					.replace(/^\n\s*/gm, '')
+					.replace(/\n\s*$/gm, '')
+			}
+
 			if (parentName == 'title') {
 				if (textAppend) {
 					ref.title += text;
 				} else {
 					ref.title = text;
 				}
-			} else if (parentName == 'style' && gParentName == 'author') {
+			} else if (
+				(parentName == 'style' && gParentName == 'author')
+				|| (parentName == 'author' && text)
+			) {
 				if (!ref.authors) ref.authors = [];
 				if (textAppend) {
-					ref.authors[ref.authors.length - 1] += xmlUnescape(text);
+					ref.authors[ref.authors.length - 1] += text;
 				} else {
-					ref.authors.push(xmlUnescape(text));
+					ref.authors.push(text);
 				}
-			} else if (parentName == 'style' && gParentName == 'keyword') {
+			} else if (
+				(parentName == 'style' && gParentName == 'keyword')
+				|| (parentName == 'keyword' && text)
+			) {
 				if (!ref.keywords) ref.keywords = [];
 				if (textAppend) {
-					ref.keywords[ref.keywords.length - 1] += xmlUnescape(text);
+					ref.keywords[ref.keywords.length - 1] += text;
 				} else {
-					ref.keywords.push(xmlUnescape(text));
+					ref.keywords.push(text);
 				}
-			} else if (parentName == 'style' && gParentName == 'url') {
+			} else if (
+				(parentName == 'style' && gParentName == 'url')
+				|| (parentName == 'url' && text)
+			) {
 				if (!ref.urls) ref.urls = [];
 				if (textAppend) {
-					ref.urls[ref.urls.length - 1] += xmlUnescape(text);
+					ref.urls[ref.urls.length - 1] += text;
 				} else {
-					ref.urls.push(xmlUnescape(text));
+					ref.urls.push(text);
 				}
-			} else if (parentName == 'style') { // Text within <style/> tag
+			} else if (parentName == 'style' && translations.fields.rawMap.has(gParentName)) { // Text within <style/> tag
 				if (textAppend || ref[gParentName]) { // Text already exists? Append (handles node-expats silly multi-text per escape character "feature")
-					ref[gParentName] += xmlUnescape(text);
+					ref[gParentName] += text;
 				} else {
-					ref[gParentName] = xmlUnescape(text);
+					ref[gParentName] = text;
 				}
 			} else if (['recNumber', 'refType'].includes(parentName)) { // Simple setters like <rec-number/>
 				if (textAppend || ref[parentName]) {
-					ref[parentName] += xmlUnescape(text);
+					ref[parentName] += text;
 				} else {
-					ref[parentName] = xmlUnescape(text);
+					ref[parentName] = text;
 				}
-			}
+			} else if (text && translations.fields.rawMap.has(parentName) && !['authors', 'keyword', 'url'].includes(parentName)) { // Zotero style simple field allocation
+				ref[parentName] = text;
+			} else if (gParentName == 'titles' && parentName == 'secondaryTitle' && text) { // Zotero "Journal" field translation
+				ref.secondaryTitle = text;
+			} // Implied else - ignore node entirely, likely a parent node containing children we actually want to process
 			textAppend = true; // Always set the next call to the text emitter handler as an append operation
 		},
 		onend() {
@@ -115,7 +132,10 @@ export function readStream(stream) {
 	// Queue up the parser in the next tick (so we can return the emitter first)
 	setTimeout(() => {
 		if (typeof stream.pipe === 'function') {
-			let parser = new XMLParser(parserOptions);
+			let parser = new XMLParser(parserOptions, {
+				decodeEntities: false, // htmlparser2 chokes if the input has unescaped '<' or '>' in the input - which Zotero does, so we have to handle this ourselves
+				xmlMode: true, // Needed to handle self-closing tags
+			});
 			stream.on('data', ()=> emitter.emit('progress', stream.bytesRead))
 			stream.pipe(parser)
 			return;
@@ -289,7 +309,11 @@ export function translateRawToRef(xRef) {
 		...Object.fromEntries(
 			translations.fields.collection
 				.filter(field => xRef[field.raw]) // Only include fields we have a value for
-				.map(field => [ field.rl, xRef[field.raw] ]) // Translate Raw -> Reflib spec
+				.map(field => [ // Translate Raw -> Reflib spec
+					field.rl,
+					Array.isArray(xRef[field.raw]) ? xRef[field.raw].map(xmlUnescape)
+					: xmlUnescape(xRef[field.raw])
+				])
 		),
 		type: translations.types.rawMap.get(+xRef.refType || 17)?.rl,
 	};
@@ -306,7 +330,7 @@ export function translateRawToRef(xRef) {
 export function xmlEscape(str) {
 	return ('' + str)
 		.replace(/&/g, '&amp;')
-		.replace(/\r/g, '&#xD;')
+		.replace(/\r/g, '&#13;')
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
@@ -322,11 +346,12 @@ export function xmlEscape(str) {
 export function xmlUnescape(str) {
 	return ('' + str)
 		.replace(/&amp;/g, '&')
-		.replace(/&#xD;/g, '\r')
+		.replace(/&#13;/g, '\r')
 		.replace(/&lt;/g, '<')
 		.replace(/&gt;/g, '>')
 		.replace(/&quot;/g, '"')
-		.replace(/&apos;/g, "'");
+		.replace(/&apos;/g, "'")
+		.replace(/\s+$/gm, '') // Trim line-end whitespace
 }
 
 
@@ -340,6 +365,7 @@ export let translations = {
 	// Field translations {{{
 	fields: {
 		collection: [
+			// Field translations in priority order (EndNote first then Zotero)
 			{rl: 'recNumber', raw: 'recNumber'},
 			{rl: 'title', raw: 'title'},
 			{rl: 'journal', raw: 'secondaryTitle'},
@@ -369,6 +395,7 @@ export let translations = {
 			{rl: 'keywords', raw: 'keywords'},
 			{rl: 'urls', raw: 'urls'},
 		],
+		rawMap: new Map(), // Calculated later for quicker lookup
 	},
 	// }}}
 	// Ref type translations {{{
@@ -434,6 +461,11 @@ export let translations = {
 * @see modules/interface.js
 */
 export function setup() {
+	// Create lookup object of translations.field translations
+	translations.fields.collection.forEach(c => {
+		translations.fields.rawMap.set(c.raw, c);
+	});
+
 	// Create lookup object of translations.types with key as .rl / val as the full object
 	translations.types.collection.forEach(c => {
 		translations.types.rlMap.set(c.rl, c);
