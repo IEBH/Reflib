@@ -217,8 +217,11 @@ export function writeStream(stream, options) {
 			return Promise.resolve();
 		},
 		write: ref => {
+			// Allocate default type if we don't already have one
+			ref.type ||= settings.defaultType;
+
 			// Fetch Reflib type definition
-			let rlType = (ref.type || settings.defaultType) && translations.types.rlMap.get(ref.type.toLowerCase());
+			let rlType = translations.types.rlMap.get(ref.type.toLowerCase());
 			let btType = rlType?.bt || settings.defaultType;
 
 			stream.write(
