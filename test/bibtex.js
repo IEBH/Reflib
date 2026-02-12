@@ -1,3 +1,4 @@
+import fakeStreams from './fakeStreams.js';
 import {readFile} from 'node:fs/promises';
 import * as reflib from '../lib/default.js';
 import test, {expect} from '@momsfriendlydevco/testa';
@@ -72,3 +73,60 @@ test('BibTeX - output a file').timeout('30s').do(t => {
 			expect(ref).to.match(/^language=\{eng\}/sm);
 		})
 });
+
+
+test('BibTeX - preserve citation keys').do(t => Promise.resolve()
+	.then(()=> t.stage('Read simple citations with custom key'))
+	.then(()=> new Promise((resolve, reject) => {
+		let refs = [];
+
+		reflib.readStream('bibtex', fakeStreams.readStream(`
+		@article{FakeKey123,
+		   title = {A fake title},
+           year = {2026}
+		}
+		`))
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	}))
+	.then(refs => {
+		t.stage('Check citations have been parsed');
+		t.dump(refs);
+		expect(refs).to.deep.equal([{
+			key: 'FakeKey123',
+			title: 'A fake title',
+			type: 'journalArticle',
+			year: '2026',
+		}]);
+
+		return refs;
+	})
+	.then(refs => {
+		t.stage('Write back citations');
+		let fakeWriter = fakeStreams.writeStream();
+		let stream = reflib.writeStream('bibtex', fakeWriter);
+		stream.start();
+		refs.forEach(ref =>
+			stream.write(ref)
+		);
+		return stream.end()
+			.then(()=> fakeWriter.contents());
+	})
+	.then(buffer => buffer.trimEnd())
+	.then(buffer => {
+		t.stage('Check written citations')
+		let expectedBuffer = [
+			'@Article{FakeKey123,',
+			'title={A fake title},',
+			'year={2026}',
+			'}',
+		].join('\n');
+		t.dump({
+			buffer: buffer.split(/\n/),
+			expectedBuffer: expectedBuffer.split(/\n/),
+		});
+		expect(buffer).to.deep.equal(expectedBuffer);
+	})
+
+);

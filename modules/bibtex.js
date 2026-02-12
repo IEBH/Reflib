@@ -22,6 +22,7 @@ const MODES = {
 * @param {Object} [options] Additional options to use when parsing
 * @param {Boolean} [options.recNumberNumeric=true] Only process the BibTeX ID into a recNumber if its a finite numeric, otherwise disguard
 * @param {Boolean} [options.recNumberRNPrefix=true] Accept `RN${NUMBER}` as recNumber if present
+* @param {Boolean} [options.recNumberKey=true] If the reference key cannot be otherwise parsed store it in `key<String>` instead
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
 * @param {String} [options.fallbackType='unkown'] Reflib fallback type if the incoming type is unrecognised or unsupported
 * @param {Set<String>} [options.fieldsOverwrite] Set of field names where the value is clobbered rather than appended if discovered more than once
@@ -32,6 +33,7 @@ export function readStream(stream, options) {
 	let settings = {
 		recNumberNumeric: true,
 		recNumberRNPrefix: true,
+		recNumberKey: true,
 		omitUnknown: false,
 		fallbackType: 'unknown',
 		fieldsOverwrite: new Set(['type']),
@@ -62,6 +64,8 @@ export function readStream(stream, options) {
 							ref.recNumber = +match.groups.id.slice(2);
 						} else if (!settings.recNumberNumeric && match.groups.id) { // Non numeric / finite ID - but we're allowed to accept it anyway
 							ref.recNumber = +match.groups.id;
+						} else if (settings.recNumberKey) { // Non numeric, custom looking key, stash in 'key' instead
+							ref.key = match.groups.id;
 						} // Implied else - No ID, ignore
 
 						ref.type = match.groups.type;
@@ -193,6 +197,7 @@ export function escape(str) {
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
 * @param {Set} [options.omitFields] Set of special fields to always omit, either because we are ignoring or because we have special treatment for them
 * @param {Boolean} [options.recNumberRNPrefix=true] Rewrite recNumber fields as `RN${NUMBER}`
+* @param {Boolean} [options.recNumberKey=true] If the reference `recNumber` is empty use `key<String>` instead
 *
 * @returns {Object} A writable stream analogue defined in `modules/interface.js`
 */
@@ -201,8 +206,9 @@ export function writeStream(stream, options) {
 		defaultType: 'Misc',
 		delimeter: '\n',
 		omitUnkown: false,
-		omitFields: new Set(['recNumber', 'type']),
+		omitFields: new Set(['key', 'recNumber', 'type']),
 		recNumberRNPrefix: true,
+		recNumberKey: true,
 		...options,
 	};
 
@@ -212,7 +218,7 @@ export function writeStream(stream, options) {
 		},
 		write: ref => {
 			// Fetch Reflib type definition
-			let rlType = ref.type && translations.types.rlMap.get(ref.type.toLowerCase());
+			let rlType = (ref.type || settings.defaultType) && translations.types.rlMap.get(ref.type.toLowerCase());
 			let btType = rlType?.bt || settings.defaultType;
 
 			stream.write(
@@ -220,6 +226,7 @@ export function writeStream(stream, options) {
 				+ (
 					ref.recNumber && settings.recNumberRNPrefix ? `RN${ref.recNumber},`
 					: ref.recNumber ? `${ref.recNumber},`
+					: ref.key ? `${ref.key},`
 					: ''
 				) + '\n'
 				+ Object.entries(ref)
