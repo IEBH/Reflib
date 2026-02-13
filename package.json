@@ -1,6 +1,6 @@
 {
   "name": "@iebh/reflib",
-  "version": "2.7.0",
+  "version": "2.7.1",
   "description": "Reference / Citation reference library utilities",
   "scripts": {
     "lint": "eslint",
