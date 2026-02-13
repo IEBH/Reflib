@@ -123,8 +123,8 @@ test('BibTeX - preserve citation keys').do(t => Promise.resolve()
 			'}',
 		].join('\n');
 		t.dump({
-			buffer: buffer.split(/\n/),
-			expectedBuffer: expectedBuffer.split(/\n/),
+			'expected': expectedBuffer.split(/\n/),
+			'got_____': buffer.split(/\n/),
 		});
 		expect(buffer).to.deep.equal(expectedBuffer);
 	})

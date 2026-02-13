@@ -196,6 +196,7 @@ export function escape(str) {
 * @param {string} [options.delimeter='\r'] How to split multi-line items
 * @param {Boolean} [options.omitUnkown=false] If true, only keep known reconised fields
 * @param {Set} [options.omitFields] Set of special fields to always omit, either because we are ignoring or because we have special treatment for them
+* @param {Boolean} [options.keyForce=true] Force a unique ID to exist if we don't already have one for each reference
 * @param {Boolean} [options.recNumberRNPrefix=true] Rewrite recNumber fields as `RN${NUMBER}`
 * @param {Boolean} [options.recNumberKey=true] If the reference `recNumber` is empty use `key<String>` instead
 *
@@ -206,7 +207,8 @@ export function writeStream(stream, options) {
 		defaultType: 'Misc',
 		delimeter: '\n',
 		omitUnkown: false,
-		omitFields: new Set(['recNumber', 'type']),
+		omitFields: new Set(['key', 'recNumber', 'type']),
+		keyForce: true,
 		recNumberRNPrefix: true,
 		recNumberKey: true,
 		...options,
@@ -217,12 +219,9 @@ export function writeStream(stream, options) {
 			return Promise.resolve();
 		},
 		write: ref => {
-			if (!ref.key) {
-				ref.key = generateCitationKey(ref);
-			}
-			// console.log("Here is the id",ref.key)
 			// Fetch Reflib type definition
-			let rlType = (ref.type || settings.defaultType) && translations.types.rlMap.get(ref.type.toLowerCase());
+			ref.type ||= settings.defaultType;
+			let rlType = translations.types.rlMap.get(ref.type.toLowerCase());
 			let btType = rlType?.bt || settings.defaultType;
 
 			stream.write(
@@ -231,6 +230,7 @@ export function writeStream(stream, options) {
 					ref.recNumber && settings.recNumberRNPrefix ? `RN${ref.recNumber},`
 					: ref.recNumber ? `${ref.recNumber},`
 					: ref.key ? `${ref.key},`
+					: settings.keyForce ? `${generateCitationKey(ref)},`
 					: ''
 				) + '\n'
 				+ Object.entries(ref)
