@@ -75,7 +75,7 @@ test('BibTeX - output a file').timeout('30s').do(t => {
 });
 
 
-test('BibTeX - preserve citation keys').do(t => Promise.resolve()
+test('BibTeX - preserve citation keys + custom fields').do(t => Promise.resolve()
 	.then(()=> t.stage('Read simple citations with custom key'))
 	.then(()=> new Promise((resolve, reject) => {
 		let refs = [];
@@ -83,7 +83,9 @@ test('BibTeX - preserve citation keys').do(t => Promise.resolve()
 		reflib.readStream('bibtex', fakeStreams.readStream(`
 		@article{FakeKey123,
 		   title = {A fake title},
-           year = {2026}
+           year = {2026},
+           foo = {123},
+           bar = {Hello world}
 		}
 		`))
 			.on('ref', ref => refs.push(ref))
@@ -98,6 +100,8 @@ test('BibTeX - preserve citation keys').do(t => Promise.resolve()
 			title: 'A fake title',
 			type: 'journalArticle',
 			year: '2026',
+			foo: '123',
+			bar: 'Hello world',
 		}]);
 
 		return refs;
@@ -116,17 +120,20 @@ test('BibTeX - preserve citation keys').do(t => Promise.resolve()
 	.then(buffer => buffer.trimEnd())
 	.then(buffer => {
 		t.stage('Check written citations')
+		let gotBuffer = buffer.split(/\n/);
 		let expectedBuffer = [
 			'@Article{FakeKey123,',
 			'title={A fake title},',
-			'year={2026}',
+			'year={2026},',
+			'foo={123},',
+			'bar={Hello world}',
 			'}',
-		].join('\n');
+		];
 		t.dump({
-			'expected': expectedBuffer.split(/\n/),
-			'got_____': buffer.split(/\n/),
+			'expected': expectedBuffer,
+			'got_____': gotBuffer,
 		});
-		expect(buffer).to.deep.equal(expectedBuffer);
+		expect(gotBuffer).to.deep.equal(expectedBuffer);
 	})
 
 );
