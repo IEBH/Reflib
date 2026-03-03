@@ -30,6 +30,29 @@ Compatibility
 * Medline seems to implement a totally different [publication type system](https://www.nlm.nih.gov/mesh/pubtypes.html) than others. Reflib will attempt to guess the best match, storing the original type in the `medlineType` key. Should the citation library be exported _back_ to Medline / `.nbib` files this key will take precedence to avoid data loss
 
 
+Command Line Interface
+======================
+This NPM ships with a very basic Command Line Interface (CLI) for very basic Reflib files manipulation.
+
+```
+Usage: reflib -i INPUT_FILE [-f FORMAT] [-o -|OUTPUT_FILE]
+
+
+-i, --input <file>             Input file to process
+
+-o, --output <file>            Output file to save. Use '-' for STDOUT
+
+-f, --format <reflib-format>   Override or set the file output type (if omitted the outfile filename
+                               is used to determine the format)
+
+-v, --verbose                  Be verbose when processing
+
+--version                      Print CLI version and exit
+
+-h, --help                     This help screen
+```
+
+
 Reference Structure
 ===================
 Reflib creates a simple Plain-Old-JavaScript-Object (POJO) for each reference it parses, or writes to a file format when given a collection of the same.
