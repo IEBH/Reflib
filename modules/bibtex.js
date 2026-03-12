@@ -251,7 +251,7 @@ export function writeStream(stream, options) {
 
 						let key = rlField ? rlField.bt : rawKey; // Use Reflib->BibTeX field mapping if we have one, otherwise use raw key
 						let val = escape( // Escape input value, either as an Array via join or as a flat string
-							rawKey == 'authors' && Array.isArray(rawVal) ? rawVal.join('\nand ') // Special joining conditions for author field
+							rawKey == 'authors' && Array.isArray(rawVal) ? rawVal.join(' and ') // Special joining conditions for author field
 							: Array.isArray(rawVal) ? rawVal.join(', ') // Treat other arrays as a CSV
 							: rawVal // Splat everything else as a string
 						);
