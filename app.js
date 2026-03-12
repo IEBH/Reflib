@@ -46,10 +46,11 @@ if (args.input) {
 	let refs = await reflib.readFile(args.input);
 	if (args.verbose) console.log('Read', refs.length, 'refs');
 
-	if (!args.output) {
-		if (args.verbose) console.log('No output file specified - assuming STDOUT JSON');
-		console.log(JSON.stringify(refs, null, 2));
-	} else if (args.output == '-' || args.output === true) {
+	if (
+		!args.output // No output file specified
+		|| args.output == '-' // OR use STDOUT
+		|| args.output === true // OR output is just specified as a flag with no rider
+	) {
 		if (!args.format) {
 			if (args.verbose) console.log('No STDOUT format specified - assuming JSON');
 			console.log(JSON.stringify(refs, null, 2));
