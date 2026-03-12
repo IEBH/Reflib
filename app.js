@@ -59,8 +59,9 @@ if (args.input) {
 
 			let stream = reflib.writeStream(args.format, process.stdout);
 			await stream.start();
-			await Array.fromAsync(refs, ref =>
-				stream.write(ref)
+			await Array.fromAsync(refs, (ref, refIndex) => Promise.resolve()
+				.then(()=> stream.write(ref))
+				.then(()=> refIndex < refs.length && stream.middle && stream.middle(ref))
 			);
 			await stream.end();
 		}
