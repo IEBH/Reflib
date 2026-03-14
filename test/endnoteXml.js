@@ -1,3 +1,4 @@
+import fakeStreams from './fakeStreams.js';
 import test, {expect} from '@momsfriendlydevco/testa';
 import {compareTestRefs} from './data/blue-light.js';
 import {createReadStream, createWriteStream} from 'node:fs';
@@ -5,6 +6,64 @@ import * as reflib from '../lib/default.js';
 import temp from 'temp';
 
 import config from './config.js';
+
+
+test('EndNoteXML - Simple XML parsing').do(t => Promise.resolve()
+	.then(()=> t.stage('Read simple citations with custom key'))
+	.then(()=> new Promise((resolve, reject) => {
+		let refs = [];
+
+		reflib.readStream('endnoteXml', fakeStreams.readStream(`
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <records>
+    <record>
+      <ref-type name="Journal Article"></ref-type>
+      <contributors>
+        <authors>
+          <author>
+            AUTHOR 1
+          </author>
+          <author>AUTHOR 2</author>
+        </authors>
+      </contributors>
+      <titles>
+        <title>TITLE</title>
+      </titles>
+      <dates>
+        <year>YEAR</year>
+          <pub-dates>
+            <date>DATE</date>
+          </pub-dates>
+      </dates>
+      <volume>VOLUME</volume>
+      <accession-num>123</accession-num>
+      <abstract>ABSTRACT</abstract>
+    </record>
+  </records>
+</xml>
+		`))
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	}))
+	.then(refs => {
+		t.stage('Check citations have been parsed');
+		t.dump(refs);
+		expect(refs).to.deep.equal([{
+			type: 'journalArticle',
+			accessionNum: '123',
+			title: 'TITLE',
+			date: 'DATE',
+			year: 'YEAR',
+			volume: 'VOLUME',
+			abstract: 'ABSTRACT',
+			authors: ['AUTHOR 1', 'AUTHOR 2'],
+		}]);
+
+		return refs;
+	})
+);
 
 
 // This test verifies that the XML parser doesn't split things like 'Foo &amp; Bar' into multiple parts when parsing
