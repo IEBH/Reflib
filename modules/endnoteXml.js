@@ -1,8 +1,5 @@
-import camelCase from '../shared/camelCase.js';
 import Emitter from '../shared/emitter.js';
-
-// This import is overwritten by the 'browser' field in package.json with the shimmed version
-import { WritableStream as XMLParser } from 'htmlparser2/lib/WritableStream';
+import XMLParser from '@iebh/cacx';
 
 /**
 * Read an EndnoteXML file, returning an Emitter analogue
@@ -21,128 +18,67 @@ export function readStream(stream) {
 	let ref = {};
 
 
-	/**
-	* Stack of nodes we are currently traversed into
-	* @type {array<Object>}
-	*/
-	let stack = [];
-
-
-	/**
-	* Whether to append incoming text blocks to the previous block
-	* This is necessary as XMLParser splits text into multiple calls so we need to know whether to append or treat this item as a continuation of the previous one
-	* @type {boolean}
-	*/
-	let textAppend = false;
-
-	/**
-	 * The options/callbacks for the parser
-	 * @type {Object}
-	 */
-	let parserOptions = {
-		onopentag(name, attrs) {
-			textAppend = false;
-			stack.push({
-				name: camelCase(name),
-				attrs,
-			});
-		},
-		onclosetag(name) {
-			if (name == 'record') {
-				if (ref.title) ref.title = ref.title // htmlparser2 handles the '<title>' tag in a really bizarre way so we have to pull apart the <style> bits when parsing
-					.replace(/^.*<style.*>(.*)<\/style>.*$/m, '$1')
-					.replace(/^\s+/, '')
-					.replace(/\s+$/, '')
-				emitter.emit('ref', translateRawToRef(ref));
-				stack = []; // Trash entire stack when hitting end of <record/> node
-				ref = {}; // Reset the ref state
-			} else {
-				stack.pop();
-			}
-		},
-		ontext(text) {
-			let parentName = stack.at(-1)?.name;
-			let gParentName = stack.at(-2)?.name;
-			if (text && text.startsWith('\n')) { // Need to crop text - likely a prettified XML output or Zotero style XML file
-				text = text
-					.replace(/^\n\s*/gm, '')
-					.replace(/\n\s*$/gm, '')
-			}
-
-			if (parentName == 'title') {
-				if (textAppend) {
-					ref.title += text;
-				} else {
-					ref.title = text;
-				}
-			} else if (
-				(parentName == 'style' && gParentName == 'author')
-				|| (parentName == 'author' && text)
-			) {
+	// Setup the XML parser
+	let parser = new XMLParser({
+		flattenText: false,
+		flattenChildren: false,
+		flattenAttrs: false,
+		onTagClose(node) {
+			if (node.tag == 'title') {
+				ref.title = node.text;
+			} else if (node.tag == 'author') {
 				if (!ref.authors) ref.authors = [];
-				if (textAppend) {
-					ref.authors[ref.authors.length - 1] += text;
-				} else {
-					ref.authors.push(text);
-				}
-			} else if (
-				(parentName == 'style' && gParentName == 'keyword')
-				|| (parentName == 'keyword' && text)
-			) {
+				ref.authors.push(node.text);
+			} else if (node.tag == 'keyword') {
 				if (!ref.keywords) ref.keywords = [];
-				if (textAppend) {
-					ref.keywords[ref.keywords.length - 1] += text;
-				} else {
-					ref.keywords.push(text);
-				}
-			} else if (
-				(parentName == 'style' && gParentName == 'url')
-				|| (parentName == 'url' && text)
-			) {
+				ref.keywords.push(node.text);
+			} else if (node.tag == 'url') {
 				if (!ref.urls) ref.urls = [];
-				if (textAppend) {
-					ref.urls[ref.urls.length - 1] += text;
-				} else {
-					ref.urls.push(text);
+				ref.urls.push(node.text);
+			} else if (
+				!['authors', 'keywords', 'urls'].includes(node.tag) // Not one of the above collectors
+				&& translations.fields.rawMap.has(node.tag) // Other supported field mapping
+			) {
+				ref[translations.fields.rawMap.get(node.tag).rl] = node.text;
+			} else if (node.tag == 'ref-type') { // Special EndnoteXML reference lookup
+				let rlType = translations.types.rawMap.get(node.attrs.name);
+				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
+			} else if (node.tag == 'secondary-title' && node.text) { // Zotero "Journal" field translation
+				let rlType = translations.types.rawMap.get(node.text);
+				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
+			} else if (node.tag == 'record') { // End of record - emit the ref and clear tracking state
+				if (ref.recNumber == '944') { // FIXME: Debugging
+					console.log('GOT REF', ref.recNumber, {ref});
 				}
-			} else if (parentName == 'style' && translations.fields.rawMap.has(gParentName)) { // Text within <style/> tag
-				if (textAppend || ref[gParentName]) { // Text already exists? Append (handles node-expats silly multi-text per escape character "feature")
-					ref[gParentName] += text;
-				} else {
-					ref[gParentName] = text;
-				}
-			} else if (['recNumber', 'refType'].includes(parentName)) { // Simple setters like <rec-number/>
-				if (textAppend || ref[parentName]) {
-					ref[parentName] += text;
-				} else {
-					ref[parentName] = text;
-				}
-			} else if (text && translations.fields.rawMap.has(parentName) && !['authors', 'keyword', 'url'].includes(parentName)) { // Zotero style simple field allocation
-				ref[parentName] = text;
-			} else if (gParentName == 'titles' && parentName == 'secondaryTitle' && text) { // Zotero "Journal" field translation
-				ref.secondaryTitle = text;
-			} // Implied else - ignore node entirely, likely a parent node containing children we actually want to process
-			textAppend = true; // Always set the next call to the text emitter handler as an append operation
+
+				emitter.emit('ref', ref);
+				ref = {};
+			}
 		},
-		onend() {
-			emitter.emit('end');
-		}
-	}
+	});
+
 
 	// Queue up the parser in the next tick (so we can return the emitter first)
 	setTimeout(() => {
 		if (typeof stream.pipe === 'function') {
-			let parser = new XMLParser(parserOptions, {
-				decodeEntities: false, // htmlparser2 chokes if the input has unescaped '<' or '>' in the input - which Zotero does, so we have to handle this ourselves
-				xmlMode: true, // Needed to handle self-closing tags
+			stream.on('data', data => {
+				parser.append(data // Push new data onto XML decode stack
+					.toString() // Convert buffer to simple string
+					.replace(/<\/?style.*?>/g, '') // Strip useless <style> wrappers that Endnote injects
+				);
+
+				emitter.emit('progress', stream.bytesRead);
+			})
+			stream.on('end', ()=> {
+				parser.exec();
+				emitter.emit('end');
 			});
-			stream.on('data', ()=> emitter.emit('progress', stream.bytesRead))
-			stream.pipe(parser)
+			stream.on('error', e => emitter.emit('error', e))
 			return;
 		} else {
 			console.error('Error with stream, check "streamEmitter.js" if on browser')
 		}
-	})
+	});
 
 	return emitter;
 }
@@ -157,8 +93,8 @@ export function readStream(stream) {
 * @param {Object} [options] Additional options to use when parsing
 * @param {string} [options.defaultType='journalArticle'] Default citation type to assume when no other type is specified
 * @param {string} [options.filePath="c:\\"] "Fake" internal source file path the citation library was exported from, must end with backslashes
-* @param {string} [options.fileName="EndNote.enl"] "Fake" internal source file name the citation library was exported from
-* @param {function} [options.formatDate] Date formatter to translate between a JS Date object and the EndNote YYYY-MM-DD format
+* @param {string} [options.fileName="Endnote.enl"] "Fake" internal source file name the citation library was exported from
+* @param {function} [options.formatDate] Date formatter to translate between a JS Date object and the Endnote YYYY-MM-DD format
 *
 * @returns {Object} A writable stream analogue defined in `modules/interface.js`
 */
@@ -166,8 +102,8 @@ export function writeStream(stream, options) {
 	let settings = {
 		defaultType: 'journalArticle',
 		filePath: 'c:\\',
-		fileName: 'EndNote.enl',
-		formatDate: value => value instanceof Date ? value.toISOString().substr(0, 10) : value,
+		fileName: 'Endnote.enl',
+		formatDate: value => value instanceof Date ? value.toISOString().slice(0, 10) : value,
 		...options,
 	};
 
@@ -365,19 +301,18 @@ export let translations = {
 	// Field translations {{{
 	fields: {
 		collection: [
-			// Field translations in priority order (EndNote first then Zotero)
-			{rl: 'recNumber', raw: 'recNumber'},
+			// Field translations in priority order (Endnote first then Zotero)
+			{rl: 'recNumber', raw: 'rec-number'},
 			{rl: 'title', raw: 'title'},
-			{rl: 'journal', raw: 'secondaryTitle'},
-			{rl: 'address', raw: 'authAddress'},
-			{rl: 'researchNotes', raw: 'researchNotes'},
-			{rl: 'type', raw: 'FIXME'},
+			{rl: 'journal', raw: 'secondary-title'},
+			{rl: 'address', raw: 'auth-address'},
+			{rl: 'researchNotes', raw: 'research-notes'},
 			{rl: 'authors', raw: 'authors'},
 			{rl: 'pages', raw: 'pages'},
 			{rl: 'volume', raw: 'volume'},
 			{rl: 'number', raw: 'number'},
 			{rl: 'isbn', raw: 'isbn'},
-			{rl: 'accessionNum', raw: 'accessionNum'},
+			{rl: 'accessionNum', raw: 'accession-num'},
 			{rl: 'abstract', raw: 'abstract'},
 			{rl: 'label', raw: 'label'},
 			{rl: 'caption', raw: 'caption'},
@@ -389,11 +324,9 @@ export let translations = {
 			{rl: 'custom5', raw: 'custom5'},
 			{rl: 'custom6', raw: 'custom6'},
 			{rl: 'custom7', raw: 'custom7'},
-			{rl: 'doi', raw: 'electronicResourceNum'},
+			{rl: 'doi', raw: 'electronic-resource-num'},
 			{rl: 'year', raw: 'year'},
 			{rl: 'date', raw: 'date'},
-			{rl: 'keywords', raw: 'keywords'},
-			{rl: 'urls', raw: 'urls'},
 		],
 		rawMap: new Map(), // Calculated later for quicker lookup
 	},

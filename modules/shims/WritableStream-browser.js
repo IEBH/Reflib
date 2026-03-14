@@ -25,7 +25,7 @@ export class WritableStream {
 			keyAttrs: 'attrs',
 		});
 
-		// Add event listeners to mimic htmlparser2 behavior
+		// Add event listeners
 		this.emitter.on('opentag', passedParserOptions.onopentag);
 		this.emitter.on('closetag', passedParserOptions.onclosetag);
 		this.emitter.on('text', passedParserOptions.ontext);
