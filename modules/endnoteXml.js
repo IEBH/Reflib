@@ -19,25 +19,26 @@ export function readStream(stream) {
 
 
 	// Setup the XML parser
-	let parser = new XMLParser({
+	let parserOptions = {
 		flattenText: false,
 		flattenChildren: false,
 		flattenAttrs: false,
-		onTagClose(node) {
-			if (node.tag == 'title') {
+		onTagClose(node, stack) {
+			if (node.tag == 'title' && node.text) {
 				ref.title = node.text;
-			} else if (node.tag == 'author') {
+			} else if (node.tag == 'author' && node.text) {
 				if (!ref.authors) ref.authors = [];
 				ref.authors.push(node.text);
-			} else if (node.tag == 'keyword') {
+			} else if (node.tag == 'keyword' && node.text) {
 				if (!ref.keywords) ref.keywords = [];
 				ref.keywords.push(node.text);
-			} else if (node.tag == 'url') {
+			} else if (node.tag == 'url' && node.text) {
 				if (!ref.urls) ref.urls = [];
 				ref.urls.push(node.text);
 			} else if (
 				!['authors', 'keywords', 'urls'].includes(node.tag) // Not one of the above collectors
-				&& translations.fields.rawMap.has(node.tag) // Other supported field mapping
+				&& translations.fields.rawMap.has(node.tag) // AND other supported field mapping
+				&& node.text // AND there is some content to populate
 			) {
 				ref[translations.fields.rawMap.get(node.tag).rl] = node.text;
 			} else if (node.tag == 'ref-type') { // Special EndnoteXML reference lookup
@@ -46,27 +47,28 @@ export function readStream(stream) {
 			} else if (node.tag == 'secondary-title' && node.text) { // Zotero "Journal" field translation
 				let rlType = translations.types.rawMap.get(node.text);
 				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
+			} else if (node.tag == 'style' && node.text) { // Embedded <style> tag Endnote seems to wrap all inner values with these even though they dont serve any purpose
+				// Re-call onTagClose() using the parent node instead
+				let outerNode = { // Create shallow copy of 'real' parent node
+					...stack.at(-2),
+					text: node.text, // ... but copy in this nodes text as if this inner `<style>` wrapper didn't exist
+				};
+				if (!outerNode) throw new Error('<style> tag with orphaned children!');
+				parserOptions.onTagClose(outerNode, stack.slice(0, -1));
 			} else if (node.tag == 'record') { // End of record - emit the ref and clear tracking state
-				if (ref.recNumber == '944') { // FIXME: Debugging
-					console.log('GOT REF', ref.recNumber, {ref});
-				}
-
 				emitter.emit('ref', ref);
 				ref = {};
 			}
 		},
-	});
+	};
+	let parser = new XMLParser(parserOptions);
 
 
 	// Queue up the parser in the next tick (so we can return the emitter first)
 	setTimeout(() => {
 		if (typeof stream.pipe === 'function') {
 			stream.on('data', data => {
-				parser.append(data // Push new data onto XML decode stack
-					.toString() // Convert buffer to simple string
-					.replace(/<\/?style.*?>/g, '') // Strip useless <style> wrappers that Endnote injects
-				);
-
+				parser.append(data.toString()) // Push new data onto XML decode stack (converting from Buffer -> String)
 				emitter.emit('progress', stream.bytesRead);
 			})
 			stream.on('end', ()=> {
