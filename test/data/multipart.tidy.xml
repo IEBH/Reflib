@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xml>
+  <records>
+    <record>
+      <database name="RefLib test library.enl" path="\\blah\RefLib test library.enl">RefLib test library.enl</database>
+      <source-app name="EndNote" version="20.2">EndNote</source-app>
+      <rec-number>1 & 2</rec-number>
+      <foreign-keys>
+        <key app="EN" db-id="axwpewsv8xsvriexevj5vezpxvpprpzw50we">1 & 2</key>
+      </foreign-keys>
+      <ref-type name="Journal Article">17</ref-type>
+      <contributors>
+        <authors>
+          <author>
+            <style face="normal" font="default" size="100%">Foo & Bar</style>
+          </author>
+          <author>
+            <style face="normal" font="default" size="100%">Baz & Quz</style>
+          </author>
+        </authors>
+      </contributors>
+      <auth-address>
+        <style face="normal" font="default" size="100%">Foo & Bar</style>
+      </auth-address>
+      <titles>
+        <title>
+          <style face="normal" font="default" size="100%">Foo & Bar</style>
+        </title>
+        <secondary-title>
+          <style face="normal" font="default" size="100%">Foo & Journal</style>
+        </secondary-title>
+      </titles>
+      <keywords>
+        <keyword>
+          <style face="normal" font="default" size="100%">Foo & Bar</style>
+        </keyword>
+        <keyword>
+          <style face="normal" font="default" size="100%">Baz & Quz</style>
+        </keyword>
+      </keywords>
+      <abstract>
+        <style face="normal" font="default" size="100%">Foo & Bar</style>
+      </abstract>
+      <dates>
+        <year>
+          <style face="normal" font="default" size="100%">Foo & Bar</style>
+        </year>
+      </dates>
+    </record>
+  </records>
+</xml>
