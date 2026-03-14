@@ -128,7 +128,7 @@ test('EndnoteXML - parse a Zotero exported EndNote XML file').timeout('30s').do(
 );
 
 
-test('should stream a XML file').timeout('30s').do(t => {
+test('EndnoteXML - stream a XML file').timeout('30s').do(t => {
 	let tempPath = temp.path({prefix: 'reflib-', suffix: '.xml'});
 	return new Promise((resolve, reject) => {
 		let output = reflib.writeStream('endnoteXml', createWriteStream(tempPath));
@@ -146,7 +146,21 @@ test('should stream a XML file').timeout('30s').do(t => {
 });
 
 
-test('should run a parse -> write -> parse test with all references').timeout('1m').do(t => {
+test('EndnoteXML - parse XML and compare to JSON').timeout('1m').do(t => Promise.resolve()
+	.then(()=> Promise.all([
+		reflib.readFile(`${config.testPath}/data/blue-light.xml`),
+		reflib.readFile(`${config.testPath}/data/blue-light.json`),
+	]))
+	.then(([xml, json]) => {
+		expect(xml).to.be.an('array');
+		expect(json).to.be.an('array');
+		expect(xml).to.have.length(json.length);
+		expect(xml).to.deep.equal(json);
+	})
+);
+
+
+test('EndnoteXML - cycle test (parse -> write -> parse)').timeout('1m').do(t => {
 	let tempPath = temp.path({prefix: 'reflib-', suffix: '.xml'});
 	let originalRefs;
 	return Promise.resolve()
@@ -159,7 +173,7 @@ test('should run a parse -> write -> parse test with all references').timeout('1
 		.then(()=> t.stage('Writing ref file'))
 		.then(()=> reflib.writeFile(tempPath, originalRefs))
 		.then(()=> t.stage(`XML file available at ${tempPath}`))
-		.then(()=> t.log('Re-reading ref file'))
+		.then(()=> t.log('Re-reading saved file'))
 		.then(()=> reflib.readFile(tempPath))
 		.then(newRefs => {
 			t.stage('Comparing', newRefs.length, 'references');
@@ -189,7 +203,7 @@ test('should run a parse -> write -> parse test with all references').timeout('1
 });
 
 
-test('should extract URLs from an XML file').timeout('30s').do(()=> Promise.resolve()
+test('EndnotXML - extract URLs from an XML file').timeout('30s').do(()=> Promise.resolve()
 	.then(()=> reflib.readFile(`${config.testPath}/data/missing-urls.xml`))
 	.then(refs => {
 		expect(refs).to.be.an('array');
