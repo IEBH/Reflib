@@ -162,11 +162,13 @@ test('EndnoteXML - parse XML and compare to JSON').timeout('1m').do(t => Promise
 
 test('EndnoteXML - cycle test (parse -> write -> parse)').timeout('1m').do(t => {
 	let tempPath = temp.path({prefix: 'reflib-', suffix: '.xml'});
-	let originalRefs;
+	let originalRefs, originalsById, newRefs;
+
 	return Promise.resolve()
 		.then(()=> t.stage('Reading ref file'))
 		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.xml`))
 		.then(refs => {
+			t.dump(refs, {normalize: true});
 			expect(refs).to.have.length(102);
 			originalRefs = refs;
 		})
@@ -175,29 +177,35 @@ test('EndnoteXML - cycle test (parse -> write -> parse)').timeout('1m').do(t => 
 		.then(()=> t.stage(`XML file available at ${tempPath}`))
 		.then(()=> t.log('Re-reading saved file'))
 		.then(()=> reflib.readFile(tempPath))
-		.then(newRefs => {
-			t.stage('Comparing', newRefs.length, 'references');
+		.then(refs => {
+			t.stage('Grouping refs');
+			t.dump(refs, {normalize: true});
+			newRefs = refs;
+			originalsById = Object.groupBy(originalRefs, r => r.recNumber);
+		})
+		.then(()=> t.stage('Comparing references'))
+		.then(()=> {
 			expect(newRefs).to.have.length(originalRefs.length);
-			newRefs.forEach((ref, refOffset) => {
+			expect(Object.keys(originalsById)).to.have.length(originalRefs.length);
 
-				/*
-				console.log('Compare', {
-					original: originalRefs[refOffset],
-					ref,
-				});
+			newRefs.forEach(got => {
+				let original = originalsById[got.recNumber][0];
 
-				Object.entries(originalRefs[refOffset])
-					.forEach(([key, expectedVal]) => {
-						console.log({
-							key,
-							'expected': originalRefs[refOffset][key],
-							'got_____': newRefs[refOffset][key],
+				// Deep comparison function - easier to read than using `expect(thing).to.deep.equal(otherThing)`
+				Object.keys(original)
+					.forEach(key => {
+						// Uncomment the next block for extra verbosity
+						/*
+						console.log('CMP ref', original.recNumber, '<=>', got.recNumber, 'key', key, {
+							originalValue: original[key],
+							gotValue: got[key],
+							// original,
+							// got,
 						});
-						expect(newRefs[refOffset]).to.have.deep.property(key, expectedVal)
+						*/
+						expect(got).to.have.deep.property(key);
+						expect(got[key]).to.deep.equal(original[key]);
 					});
-				*/
-
-				expect(ref).to.deep.equal(originalRefs[refOffset])
 			});
 		})
 });
