@@ -49,6 +49,7 @@
   },
   "dependencies": {
     "@iebh/cacx": "^1.1.0",
+    "@momsfriendlydevco/sort-keys": "^1.0.0",
     "@zip.js/zip.js": "^2.7.57",
     "JSONStream": "^1.3.5",
     "mitt": "^3.0.1",

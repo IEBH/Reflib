@@ -32,6 +32,7 @@ args = parseArgs.expand(args, {
 	'f': 'format',
 	'v': 'verbose',
 });
+args.format ||= 'json';
 // }}}
 
 // Action: Version {{{
@@ -51,20 +52,19 @@ if (args.input) {
 		|| args.output == '-' // OR use STDOUT
 		|| args.output === true // OR output is just specified as a flag with no rider
 	) {
-		if (!args.format) {
-			if (args.verbose) console.log('No STDOUT format specified - assuming JSON');
-			console.log(JSON.stringify(refs, null, 2));
-		} else {
-			if (args.verbose) console.log(`Raw output to STDOUT using "${args.format}" format`);
+		if (args.verbose) console.log(`Raw output to STDOUT using "${args.format}" format`);
 
-			let stream = reflib.writeStream(args.format, process.stdout);
-			await stream.start();
-			await Array.fromAsync(refs, (ref, refIndex) => Promise.resolve()
-				.then(()=> stream.write(ref))
-				.then(()=> refIndex < refs.length && stream.middle && stream.middle(ref))
-			);
-			await stream.end();
-		}
+		let stream = reflib.writeStream(
+			args.format,
+			process.stdout,
+			args.format == 'json' ? {indent:'\t'} : {},
+		);
+		await stream.start();
+		await Array.fromAsync(refs, (ref, refIndex) => Promise.resolve()
+			.then(()=> stream.write(ref))
+			.then(()=> refIndex < refs.length && stream.middle && stream.middle(ref))
+		);
+		await stream.end();
 	} else if (args.output) {
 		if (args.verbose) console.log('Writing', args.output);
 		await reflib.writeFile(args.output, refs);
