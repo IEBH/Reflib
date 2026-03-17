@@ -329,6 +329,7 @@ export let translations = {
 			{rl: 'doi', raw: 'electronic-resource-num'},
 			{rl: 'year', raw: 'year'},
 			{rl: 'date', raw: 'date'},
+			{rl: 'language', raw: 'language'},
 		],
 		rawMap: new Map(), // Calculated later for quicker lookup
 	},
