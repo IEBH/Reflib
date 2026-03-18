@@ -1,6 +1,6 @@
 {
   "name": "@iebh/reflib",
-  "version": "2.8.0",
+  "version": "2.8.1",
   "description": "Reference / Citation reference library utilities",
   "bin": {
     "reflib": "./app.js"
