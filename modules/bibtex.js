@@ -91,11 +91,11 @@ export function readStream(stream, options) {
 						&& (
 							(
 								state.fieldWrapper == '{'
-								&& (match = /^(?<value>.+?)(?<!\\%)\}\s*,?\s*$/sm.exec(buffer))
+								&& (match = /^(?<value>.*?)(?<!\\%)\}\s*,?\s*$/sm.exec(buffer))
 							)
 							|| (
 								state.fieldWrapper == '"'
-								&& (match = /^(?<value>.+?)"\s*,?\s*$/sm.exec(buffer))
+								&& (match = /^(?<value>.*?)"\s*,?\s*$/sm.exec(buffer))
 							)
 						)
 					) {
