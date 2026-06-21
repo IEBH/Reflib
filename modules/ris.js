@@ -150,9 +150,19 @@ export function parseRef(refString, settings) {
 			if (!parsedLine) { // Doesn't match key=val spec
 				if (line.replace(/\s+/, '') && lastField) { // Line isn't just whitespace + We have a field to append to - append with \r delimiters
 					if (lastField.inputArray) { // Treat each line feed like an array entry
-						ref[lastField.rl].push(line);
+						const currentValue = ref[lastField.rl];
+						if (Array.isArray(currentValue)) {
+							currentValue.push(line);
+						} else {
+							ref[lastField.rl] = [line];
+						}
 					} else { // Assume we append each line entry as a string with settings.delimeter
-						ref[lastField.rl] += settings.delimeter + line;
+						const currentValue = ref[lastField.rl];
+						if (typeof currentValue === 'string') {
+							ref[lastField.rl] = currentValue + settings.delimeter + line;
+						} else {
+							ref[lastField.rl] = line;
+						}
 					}
 				}
 				return; // Stop processing this line
@@ -164,18 +174,29 @@ export function parseRef(refString, settings) {
 			if (!fieldLookup) { // Skip unknown field translations
 				lastField = null;
 				return;
-			} else if (fieldLookup.rl == 'type') { // Special handling for ref types
-				ref[fieldLookup.rl] = translations.types.rawMap.get(parsedLine.value)?.rl || settings.defaultType;
+			}
+
+			// Make sure the value is not empty before proceeding
+			const trimmedValue = parsedLine.value?.trim();
+			if (!trimmedValue) {
+				// Empty value, don't set this field or use it as lastField
+				lastField = null;
+				return;
+			}
+
+			if (fieldLookup.rl == 'type') { // Special handling for ref types
+				ref[fieldLookup.rl] = translations.types.rawMap.get(trimmedValue)?.rl || settings.defaultType;
 				lastField = fieldLookup; // Track last key so we can append to it on the next cycle
 			} else if (fieldLookup.inputArray) { // Should this `rl` key be treated like an appendable array?
-				if (!ref[fieldLookup.rl] || !Array.isArray(ref[fieldLookup.rl])) { // Array doesn't exist yet
-					ref[fieldLookup.rl] = [parsedLine.value];
+				const currentValue = ref[fieldLookup.rl];
+				if (Array.isArray(currentValue)) {
+					currentValue.push(trimmedValue);
 				} else {
-					ref[fieldLookup.rl].push(parsedLine.value);
+					ref[fieldLookup.rl] = [trimmedValue];
 				}
 				lastField = fieldLookup;
 			} else { // Simple key=val
-				ref[fieldLookup.rl] = parsedLine.value;
+				ref[fieldLookup.rl] = trimmedValue;
 				lastField = fieldLookup;
 			}
 		})
