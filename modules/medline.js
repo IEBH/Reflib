@@ -277,9 +277,6 @@ export function parseRef(refString, settings) {
 
 			let fieldLookup = translations.fields.rawMap.get(parsedLine.key);
 
-			if (lastField?.trimDotSuffix)
-				ref[lastField.rl] = ref[lastField.rl].replace(/\.$/, '');
-
 			if (!fieldLookup) { // Skip unknown field translations
 				lastField = null;
 				return;
@@ -297,6 +294,11 @@ export function parseRef(refString, settings) {
 		})
 
 	// Post processing {{{
+	// Remove trailing dots from fields that request it (e.g. titles) - done here so the last field in a record is also handled
+	translations.fields.collection
+		.filter(f => f.trimDotSuffix && typeof ref[f.rl] == 'string')
+		.forEach(f => ref[f.rl] = ref[f.rl].replace(/\.$/, ''));
+
 	// Apply field replacement / reformat rules
 	if (settings.fieldsReplace?.length > 0)
 		settings.fieldsReplace.forEach(replacement => {

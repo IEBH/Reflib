@@ -282,3 +282,28 @@ test('Medline - read multiple ISSN entries as an array and write each once').do(
 	})
 );
 
+
+test('Medline - trim the trailing dot from a title even when it is the last field').do(t => Promise.resolve()
+	.then(()=> readMedline([
+		'PMID- 1',
+		'TI  - Title which ends the record.',
+		'',
+		'PMID- 2',
+		'TI  - Title which spans',
+		'      two lines.',
+		'',
+		'PMID- 3',
+		'TI  - Title followed by another field.',
+		'LA  - eng',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs.map(r => r.title)).to.deep.equal([
+			'Title which ends the record',
+			'Title which spans two lines',
+			'Title followed by another field',
+		]);
+	})
+);
+
