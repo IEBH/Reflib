@@ -351,3 +351,22 @@ test('EndnoteXML - escape dates, record numbers and file names when writing').do
 			expect(newRefs[0]).to.have.property('year', '2020');
 		})
 });
+
+
+test('EndnoteXML - emit references while streaming rather than only at the end').timeout('30s').do(t => new Promise((resolve, reject) => {
+	let events = [];
+
+	reflib.readStream('endnoteXml', createReadStream(`${config.testPath}/data/blue-light.xml`, {highWaterMark: 16 * 1024}))
+		.on('progress', ()=> events.push('progress'))
+		.on('ref', ()=> events.push('ref'))
+		.on('error', reject)
+		.on('end', ()=> {
+			let firstRef = events.indexOf('ref');
+			let lastProgress = events.lastIndexOf('progress');
+			t.dump({events: events.length, firstRef, lastProgress});
+			expect(events.filter(e => e == 'ref')).to.have.length(102);
+			expect(events.filter(e => e == 'progress').length).to.be.above(5);
+			expect(firstRef).to.be.below(lastProgress); // Refs arrived before the file finished reading
+			resolve();
+		});
+}));

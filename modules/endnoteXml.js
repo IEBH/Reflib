@@ -20,6 +20,7 @@ export function readStream(stream) {
 
 	// Setup the XML parser
 	let parserOptions = {
+		collect: false, // We emit refs as we go rather than building the whole document in memory
 		flattenText: false,
 		flattenChildren: false,
 		flattenAttrs: false,
@@ -59,6 +60,10 @@ export function readStream(stream) {
 			} else if (node.tag == 'record') { // End of record - emit the ref and clear tracking state
 				emitter.emit('ref', ref);
 				ref = {};
+
+				// Release the parsed record tree from its parent so memory doesn't grow with the file size
+				let parent = stack.at(-2);
+				if (parent?.children) parent.children = [];
 			}
 		},
 	};
@@ -69,7 +74,9 @@ export function readStream(stream) {
 	setTimeout(() => {
 		if (typeof stream.pipe === 'function') {
 			stream.on('data', data => {
-				parser.append(data.toString()) // Push new data onto XML decode stack (converting from Buffer -> String)
+				parser
+					.append(data.toString()) // Push new data onto XML decode stack (converting from Buffer -> String)
+					.exec(); // ... and process as much of it as we can so refs are emitted while streaming
 				emitter.emit('progress', stream.bytesRead);
 			})
 			stream.on('end', ()=> {
