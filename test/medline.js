@@ -183,3 +183,22 @@ test('Medline - write PT lines for the type and keep them over a write -> read c
 		})
 });
 
+
+test('Medline - keep pipe characters within values').do(t => Promise.resolve()
+	.then(()=> readMedline([
+		'PMID- 1',
+		'TI  - Foo | Bar.',
+		'AB  - Alpha | Beta',
+		'      Gamma | Delta',
+		'OT  - one | two',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.have.length(1);
+		expect(refs[0]).to.have.property('title', 'Foo | Bar');
+		expect(refs[0]).to.have.property('abstract', 'Alpha | Beta Gamma | Delta');
+		expect(refs[0]).to.have.deep.property('keywords', ['one | two']);
+	})
+);
+

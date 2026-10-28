@@ -230,3 +230,25 @@ test('RIS - reference types survive a write -> read cycle').do(t => Promise.reso
 	})
 );
 
+
+test('RIS - keep pipe characters within values').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - JOUR',
+		'TI  - Foo | Bar',
+		'AB  - Alpha | Beta',
+		'  Gamma | Delta',
+		'KW  - one | two',
+		'ER  - ',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.deep.equal([{
+			type: 'journalArticle',
+			title: 'Foo | Bar',
+			abstract: 'Alpha | Beta\r  Gamma | Delta',
+			keywords: ['one | two'],
+		}]);
+	})
+);
+

@@ -253,7 +253,7 @@ export function parseRef(refString, settings) {
 	let lastField; // Last field object we saw, used to append values if they don't match the default RIS key=val one-liner
 
 	refString
-		.split(/[\r\n|\n]/) // Split into lines
+		.split(/\r\n|\r|\n/) // Split into lines
 		.forEach(line => {
 			let parsedLine = /^\s*(?<key>[A-Z]+?)\s*-\s+(?<value>.*)$/s.exec(line)?.groups;
 
