@@ -71,7 +71,7 @@ juggleOptions.files
 			.then(()=> {
 				t.stage('Sorting refs');
 				refs1 = sortBy(refs1, juggleOptions.sortBy);
-				refs2 = sortBy(refs1, juggleOptions.sortBy);
+				refs2 = sortBy(refs2, juggleOptions.sortBy);
 			})
 			.then(()=> {
 				t.stage('Comparing', refs1.length, 'references');
