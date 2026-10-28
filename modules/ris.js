@@ -18,7 +18,7 @@ export function readStream(stream, options) {
 	let settings = {
 		defaultType: 'journalArticle',
 		delimeter: '\r',
-		convertAbtract: true,
+		convertAbstract: true,
 		convertCity: true,
 		...options,
 	};
@@ -95,6 +95,9 @@ export function writeStream(stream, options) {
 				title: '<NO TITLE>',
 				...xRef,
 			};
+
+			// Write `city` back out as the raw CY field if we don't already have the raw value
+			if (ref.city && !ref.fallbackCity) ref.fallbackCity = ref.city;
 
 			// Parse `pages` back into `_pageStart` + `_pageEnd` meta keys
 			if (xRef.pages) {
@@ -191,13 +194,13 @@ export function parseRef(refString, settings) {
 	}
 	// }}}
 	// FallbackAbstract -> Abstract (if the latter is missing) {{{
-	if ((settings.fallbackAbstract ?? true) && ref.fallbackAbstract && !ref.abstract) {
+	if ((settings.convertAbstract ?? true) && ref.fallbackAbstract && !ref.abstract) {
 		ref.abstract = ref.fallbackAbstract;
 		delete ref.fallbackAbstract;
 	}
 	// }}}
 	// FallbackCity -> City (if the latter is missing) {{{
-	if ((settings.fallbackCity ?? true) && ref.fallbackCity && !ref.abstract) {
+	if ((settings.convertCity ?? true) && ref.fallbackCity && !ref.city) {
 		ref.city = ref.fallbackCity;
 		delete ref.fallbackCity;
 	}

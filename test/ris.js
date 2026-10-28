@@ -275,3 +275,59 @@ test('RIS - treat a blank field with no trailing space as a field, not a continu
 	})
 );
 
+
+test('RIS - honour the convertAbstract and convertCity options').do(t => {
+	let content = [
+		'TY  - JOUR',
+		'TI  - Title',
+		'N2  - Fallback abstract',
+		'CY  - London',
+		'ER  - ',
+		'',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> Promise.all([
+			readRis(content),
+			readRis(content, {convertAbstract: false, convertCity: false}),
+		]))
+		.then(([converted, raw]) => {
+			t.dump({converted, raw});
+			expect(converted[0]).to.have.property('abstract', 'Fallback abstract');
+			expect(converted[0]).to.not.have.property('fallbackAbstract');
+			expect(converted[0]).to.have.property('city', 'London');
+			expect(converted[0]).to.not.have.property('fallbackCity');
+
+			expect(raw[0]).to.have.property('fallbackAbstract', 'Fallback abstract');
+			expect(raw[0]).to.not.have.property('abstract');
+			expect(raw[0]).to.have.property('fallbackCity', 'London');
+			expect(raw[0]).to.not.have.property('city');
+		})
+});
+
+
+test('RIS - convert city even when an abstract is present and keep it over a write -> read cycle').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - JOUR',
+		'TI  - Title',
+		'AB  - Abstract',
+		'CY  - London',
+		'ER  - ',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.property('city', 'London');
+		return writeRis(refs);
+	})
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.match(/^CY  - London$/m);
+		return readRis(contents);
+	})
+	.then(refs => {
+		expect(refs[0]).to.have.property('city', 'London');
+		expect(refs[0]).to.have.property('abstract', 'Abstract');
+	})
+);
+
