@@ -42,3 +42,18 @@ test('Convert an EndNoteXML file to BibTeX', async (t) => {
 	expect(refs).to.be.an('array');
 	expect(refs).to.have.length(102);
 });
+
+
+test('Output BibTeX to STDOUT without a trailing blank line', async (t) => {
+	let {stdout} = await execa(binPath, [
+		'--input',
+		`${__dirname}/data/blue-light-tiny.xml`,
+		'--format',
+		'bibtex',
+	], {stripFinalNewline: false});
+
+	expect(stdout).to.match(/\}\n$/);
+	expect(stdout).to.not.match(/\n\n$/);
+	expect(stdout.match(/^@/gm)).to.have.length(10);
+});
+

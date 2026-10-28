@@ -62,7 +62,7 @@ if (args.input) {
 		await stream.start();
 		await Array.fromAsync(refs, (ref, refIndex) => Promise.resolve()
 			.then(()=> stream.write(ref))
-			.then(()=> refIndex < refs.length && stream.middle && stream.middle(ref))
+			.then(()=> refIndex < refs.length - 1 && stream.middle && stream.middle(ref)) // Call middle() between refs only (not after the last)
 		);
 		await stream.end();
 	} else if (args.output) {
