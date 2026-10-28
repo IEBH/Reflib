@@ -58,7 +58,7 @@ test('Medline - should stream a Medline file').timeout('30s').do(t => {
 			.on('error', reject)
 	})
 		.then(()=> t.log(`Medline file available at ${tempPath}`))
-		.then(()=> reflib.readFile(tempPath), medlineOptions.read)
+		.then(()=> reflib.readFile(tempPath, medlineOptions.read))
 		.then(refs => compareTestRefs(refs, {profile: 'medline'}))
 });
 
@@ -70,13 +70,13 @@ test('Medline - should run a parse -> write -> parse test with all references').
 
 	return Promise.resolve()
 		.then(()=> t.stage('Reading ref file'))
-		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.nbib`), medlineOptions.read)
+		.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.nbib`, medlineOptions.read))
 		.then(refs => originalRefs = refs)
 		.then(()=> t.stage('Writing ref file'))
 		.then(()=> reflib.writeFile(tempPath, originalRefs, medlineOptions.write))
 		.then(()=> t.log(`Medline file available at ${tempPath}`))
 		.then(()=> t.stage('Re-reading ref file'))
-		.then(()=> reflib.readFile(tempPath), medlineOptions.read)
+		.then(()=> reflib.readFile(tempPath, medlineOptions.read))
 		.then(newRefs => {
 			t.stage('Comparing', newRefs.length, 'references');
 			newRefs.forEach((ref, refOffset) => {
