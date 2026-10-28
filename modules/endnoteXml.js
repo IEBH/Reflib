@@ -132,10 +132,10 @@ export function writeStream(stream, options) {
 			stream.write(
 				'<record>'
 					// Preamble
-					+ `<database name="${settings.fileName}" path="${settings.filePath}${settings.fileName}">${encodedName}</database>`
+					+ `<database name="${encodedName}" path="${xmlEscape(settings.filePath + settings.fileName)}">${encodedName}</database>`
 					+ `<source-app name="EndNote" version="16.0">EndNote</source-app>`
-					+ `<rec-number>${recNumber}</rec-number>`
-					+ `<foreign-keys><key app="EN" db-id="s55prpsswfsepue0xz25pxai2p909xtzszzv">${recNumber}</key></foreign-keys>`
+					+ `<rec-number>${xmlEscape(recNumber)}</rec-number>`
+					+ `<foreign-keys><key app="EN" db-id="s55prpsswfsepue0xz25pxai2p909xtzszzv">${xmlEscape(recNumber)}</key></foreign-keys>`
 
 					// Type
 					+ `<ref-type name="${refType.rawText}">${refType.rawId}</ref-type>`
@@ -198,7 +198,7 @@ export function writeStream(stream, options) {
 							+ `<pub-dates><date><style face="normal" font="default" size="100%">${settings.formatDate(ref.date)}</style></date></pub-dates></dates>`
 						: ref.date && ref.year ?
 							`<dates><year><style face="normal" font="default" size="100%">${xmlEscape(ref.year)}</style></year>`
-							+ `<pub-dates><date><style face="normal" font="default" size="100%">${ref.date}</style></date></pub-dates></dates>`
+							+ `<pub-dates><date><style face="normal" font="default" size="100%">${xmlEscape(ref.date)}</style></date></pub-dates></dates>`
 						: ref.date ?
 							`<dates><pub-dates><date><style face="normal" font="default" size="100%">${xmlEscape(ref.date)}</style></date></pub-dates></dates>`
 						: ref.year ?

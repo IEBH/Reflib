@@ -321,3 +321,33 @@ test('EndnoteXML - join multiple <style> runs within one value').do(t => Promise
 	})
 );
 
+
+
+test('EndnoteXML - escape dates, record numbers and file names when writing').do(t => {
+	let refs = [{
+		recNumber: '1 & 2',
+		type: 'journalArticle',
+		title: 'Title <with> "quotes" & ampersands',
+		year: '2020',
+		date: '2020 <Online> & more',
+	}];
+
+	return Promise.resolve()
+		.then(()=> writeXml(refs, {fileName: 'My "Library" & Co.enl'}))
+		.then(contents => {
+			t.dump(contents);
+			expect(contents).to.not.match(/<date><style[^>]*>2020 <Online>/);
+			expect(contents).to.match(/&lt;Online&gt; &amp; more/);
+			expect(contents).to.match(/<rec-number>1 &amp; 2<\/rec-number>/);
+			expect(contents).to.match(/<database name="My &quot;Library&quot; &amp; Co\.enl"/);
+			return readXml(contents);
+		})
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs).to.have.length(1);
+			expect(newRefs[0]).to.have.property('recNumber', '1 & 2');
+			expect(newRefs[0]).to.have.property('title', refs[0].title);
+			expect(newRefs[0]).to.have.property('date', refs[0].date);
+			expect(newRefs[0]).to.have.property('year', '2020');
+		})
+});
