@@ -1,6 +1,7 @@
 [
 	{
 		"recNumber": "895",
+		"edition": "20180327",
 		"databaseProvider": "NLM",
 		"title": "Formulation of Herbal Gel of Antirrhinum majus Extract and Evaluation of its Anti-Propionibacterium acne Effects",
 		"journal": "Adv Biomed Res",
@@ -130,6 +131,7 @@
 	},
 	{
 		"recNumber": "878",
+		"edition": "20210721",
 		"databaseProvider": "NLM",
 		"title": "The Use of Lasers and Light Devices in Acne Management: An Update",
 		"journal": "Am J Clin Dermatol",
@@ -195,6 +197,7 @@
 	},
 	{
 		"recNumber": "908",
+		"edition": "20150218",
 		"databaseProvider": "NLM",
 		"title": "Regulation of lipid production by light-emitting diodes in human sebocytes",
 		"journal": "Arch Dermatol Res",
@@ -277,6 +280,7 @@
 	},
 	{
 		"recNumber": "900",
+		"edition": "20171016",
 		"databaseProvider": "NLM",
 		"title": "Light therapies for acne: abridged Cochrane systematic review including GRADE assessments",
 		"journal": "Br J Dermatol",
@@ -322,6 +326,7 @@
 	},
 	{
 		"recNumber": "931",
+		"edition": "20090223",
 		"databaseProvider": "NLM",
 		"title": "Laser and other light therapies for the treatment of acne vulgaris: systematic review",
 		"journal": "Br J Dermatol",
@@ -482,6 +487,7 @@
 	},
 	{
 		"recNumber": "886",
+		"edition": "20191105",
 		"databaseProvider": "NLM",
 		"title": "Comparative Study Of Photodynamic Therapy With Riboflavin-Tryptophan Gel And 13% 5-Aminolevulinic Acid In The Treatment Of Mild To Moderate Acne Vulgaris",
 		"journal": "Clin Cosmet Investig Dermatol",
@@ -512,6 +518,7 @@
 	},
 	{
 		"recNumber": "902",
+		"edition": "20161027",
 		"databaseProvider": "NLM",
 		"title": "Laser and light-based treatments of acne and acne scarring",
 		"journal": "Clin Dermatol",
@@ -571,6 +578,7 @@
 	},
 	{
 		"recNumber": "876",
+		"edition": "20210818",
 		"databaseProvider": "NLM",
 		"title": "The significant health threat from sunbed use as a self treatment in patients with acne",
 		"journal": "Clin Exp Dermatol",
@@ -592,6 +600,7 @@
 	},
 	{
 		"recNumber": "905",
+		"edition": "20160927",
 		"databaseProvider": "NLM",
 		"title": "Light therapies for acne",
 		"journal": "Cochrane Database Syst Rev",
@@ -687,6 +696,7 @@
 	},
 	{
 		"recNumber": "921",
+		"edition": "20110315",
 		"databaseProvider": "NLM",
 		"title": "Current state of acne treatment: highlighting lasers, photodynamic therapy, and chemical peels",
 		"journal": "Dermatol Online J",
@@ -768,6 +778,7 @@
 	},
 	{
 		"recNumber": "906",
+		"edition": "20150903",
 		"databaseProvider": "NLM",
 		"title": "Efficacy of blue light in treatment of acne",
 		"journal": "Dermatol Ther",
@@ -877,6 +888,7 @@
 	},
 	{
 		"recNumber": "914",
+		"edition": "20120728",
 		"databaseProvider": "NLM",
 		"title": "Blue light for infectious diseases: Propionibacterium acnes, Helicobacter pylori, and beyond?",
 		"journal": "Drug Resist Updat",
@@ -1091,6 +1103,7 @@
 	},
 	{
 		"recNumber": "904",
+		"edition": "20160830",
 		"databaseProvider": "NLM",
 		"title": "A multicenter, randomized, split-face clinical trial evaluating the efficacy and safety of chromophore gel-assisted blue light phototherapy for the treatment of acne",
 		"journal": "Int J Dermatol",
@@ -1136,6 +1149,7 @@
 	},
 	{
 		"recNumber": "896",
+		"edition": "20171120",
 		"databaseProvider": "NLM",
 		"title": "An extension of a multicenter, randomized, split-face clinical trial evaluating the efficacy and safety of chromophore gel-assisted blue light phototherapy for the treatment of acne",
 		"journal": "Int J Dermatol",
@@ -1183,6 +1197,7 @@
 	},
 	{
 		"recNumber": "880",
+		"edition": "20210225",
 		"databaseProvider": "NLM",
 		"title": "Visible light. Part I: Properties and cutaneous effects of visible light",
 		"journal": "J Am Acad Dermatol",
@@ -1262,6 +1277,7 @@
 	},
 	{
 		"recNumber": "897",
+		"edition": "20170601",
 		"databaseProvider": "NLM",
 		"title": "Exposure to Visible Light Emitted from Smartphones and Tablets Increases the Proliferation of Staphylococcus aureus: Can this be Linked to Acne?",
 		"journal": "J Biomed Phys Eng",
@@ -1299,6 +1315,7 @@
 	},
 	{
 		"recNumber": "884",
+		"edition": "20200620",
 		"databaseProvider": "NLM",
 		"title": "Effect of Blue Light and Photosensitizers on Cutibacterium acnes on Shoulder Periprosthetic Joint Infection Isolates",
 		"journal": "J Bone Jt Infect",
@@ -1335,6 +1352,7 @@
 	},
 	{
 		"recNumber": "889",
+		"edition": "20190501",
 		"databaseProvider": "NLM",
 		"title": "FLUORESCENT LIGHT ENERGY: The Future for Treating Inflammatory Skin Conditions?",
 		"journal": "J Clin Aesthet Dermatol",
@@ -1590,6 +1608,7 @@
 	},
 	{
 		"recNumber": "875",
+		"edition": "20211021",
 		"databaseProvider": "NLM",
 		"title": "The use of light in the treatment of acne vulgaris-a review",
 		"journal": "J Cosmet Dermatol",
@@ -1629,6 +1648,7 @@
 	},
 	{
 		"recNumber": "909",
+		"edition": "20150220",
 		"databaseProvider": "NLM",
 		"title": "A randomized controlled study for the treatment of acne vulgaris using high-intensity 414 nm solid state diode arrays",
 		"journal": "J Cosmet Laser Ther",
@@ -1777,6 +1797,7 @@
 	},
 	{
 		"recNumber": "885",
+		"edition": "20200609",
 		"databaseProvider": "NLM",
 		"title": "Efficacy of 595- and 1319-nm pulsed dye laser in the treatment of acne vulgaris: a narrative review",
 		"journal": "J Cosmet Laser Ther",
@@ -1821,6 +1842,7 @@
 	},
 	{
 		"recNumber": "882",
+		"edition": "20201018",
 		"databaseProvider": "NLM",
 		"title": "A split-face comparative trial of photopneumatic therapy versus intense pulsed light for the treatment of acne vulgaris",
 		"journal": "J Cosmet Laser Ther",
@@ -1967,6 +1989,7 @@
 	},
 	{
 		"recNumber": "922",
+		"edition": "20101103",
 		"databaseProvider": "NLM",
 		"title": "Comparative study of the bactericidal effects of 5-aminolevulinic acid with blue and red light on Propionibacterium acnes",
 		"journal": "J Dermatol",
@@ -2784,6 +2807,7 @@
 	},
 	{
 		"recNumber": "916",
+		"edition": "20120225",
 		"databaseProvider": "NLM",
 		"title": "Effects of 420-nm intense pulsed light in an acne animal model",
 		"journal": "J Eur Acad Dermatol Venereol",
@@ -2821,6 +2845,7 @@
 	},
 	{
 		"recNumber": "883",
+		"edition": "20200915",
 		"databaseProvider": "NLM",
 		"title": "Blue light: Friend or foe ?",
 		"journal": "J Photochem Photobiol B",
@@ -2865,6 +2890,7 @@
 	},
 	{
 		"recNumber": "887",
+		"edition": "20191112",
 		"databaseProvider": "NLM",
 		"title": "Optimizing the bactericidal effect of pulsed blue light on Propionibacterium acnes - A correlative fluorescence spectroscopy study",
 		"journal": "J Photochem Photobiol B",
@@ -2902,6 +2928,7 @@
 	},
 	{
 		"recNumber": "893",
+		"edition": "20180926",
 		"databaseProvider": "NLM",
 		"title": "Low-dose blue light irradiation enhances the antimicrobial activities of curcumin against Propionibacterium acnes",
 		"journal": "J Photochem Photobiol B",
@@ -2941,6 +2968,7 @@
 	},
 	{
 		"recNumber": "894",
+		"edition": "20180817",
 		"databaseProvider": "NLM",
 		"title": "An In Vitro Approach to Photodynamic Therapy",
 		"journal": "J Vis Exp",
@@ -2968,6 +2996,7 @@
 	},
 	{
 		"recNumber": "892",
+		"edition": "20181107",
 		"databaseProvider": "NLM",
 		"title": "Blue light-emitting diode in healthy vaginal mucosa-a new therapeutic possibility",
 		"journal": "Lasers Med Sci",
@@ -3012,6 +3041,7 @@
 	},
 	{
 		"recNumber": "890",
+		"edition": "20190328",
 		"databaseProvider": "NLM",
 		"title": "Propionibacterium acnes susceptibility to low-level 449 nm blue light photobiomodulation",
 		"journal": "Lasers Surg Med",
@@ -3168,6 +3198,7 @@
 	},
 	{
 		"recNumber": "877",
+		"edition": "20210708",
 		"databaseProvider": "NLM",
 		"title": "Blue Light in Dermatology",
 		"journal": "Life (Basel)",
@@ -3223,6 +3254,7 @@
 	},
 	{
 		"recNumber": "901",
+		"edition": "20170322",
 		"databaseProvider": "NLM",
 		"title": "Characterization of blue light irradiation effects on pathogenic and nonpathogenic Escherichia coli",
 		"journal": "Microbiologyopen",
@@ -3300,6 +3332,7 @@
 	},
 	{
 		"recNumber": "879",
+		"edition": "20210716",
 		"databaseProvider": "NLM",
 		"title": "The efficacy of blue light versus the combination of blue and red light therapy in the treatment of acne vulgaris",
 		"journal": "Photodermatol Photoimmunol Photomed",
@@ -3326,6 +3359,7 @@
 	},
 	{
 		"recNumber": "873",
+		"edition": "20220103",
 		"databaseProvider": "NLM",
 		"title": "Comparison of red light and blue light therapies for mild-to-moderate acne vulgaris: A randomized controlled clinical study",
 		"journal": "Photodermatol Photoimmunol Photomed",
@@ -3497,6 +3531,7 @@
 	},
 	{
 		"recNumber": "874",
+		"edition": "20211019",
 		"databaseProvider": "NLM",
 		"title": "Effect of Blue Light on Acne Vulgaris: A Systematic Review",
 		"journal": "Sensors (Basel)",
@@ -3547,6 +3582,7 @@
 	},
 	{
 		"recNumber": "911",
+		"edition": "20141110",
 		"databaseProvider": "NLM",
 		"title": "Multimodal and time-lapse skin registration",
 		"journal": "Skin Res Technol",
@@ -3588,6 +3624,7 @@
 	},
 	{
 		"recNumber": "898",
+		"edition": "20170401",
 		"databaseProvider": "NLM",
 		"title": "A Retrospective Study of Multiple Sequential Light and Laser Sources to Activate Aminolevulinic Acid in the Treatment of Acne Vulgaris",
 		"journal": "Skinmed",

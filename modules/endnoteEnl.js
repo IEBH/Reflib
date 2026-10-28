@@ -115,7 +115,7 @@ export const columnMappings = [
 	// 'place_published',
 	// 'publisher',
 	// 'subsidiary_author',
-	// 'edition',
+	{sl: 'edition', rl: 'edition'},
 	{sl: 'keywords', rl: 'keywords', read: splitLines, write: joinLines},
 	{sl: 'type_of_work', rl: 'workType'},
 	{sl: 'date', rl: 'date'},

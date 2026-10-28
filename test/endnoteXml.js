@@ -420,3 +420,16 @@ test('EndnoteXML - short titles and original publications survive a write -> rea
 			expect(newRefs[0]).to.deep.equal(refs[0]);
 		})
 });
+
+
+test('EndnoteXML - editions survive a write -> read cycle').do(t => {
+	let refs = [{recNumber: '1', type: 'book', title: 'A', edition: '2nd'}];
+
+	return Promise.resolve()
+		.then(()=> writeXml(refs))
+		.then(contents => readXml(contents))
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs[0]).to.deep.equal(refs[0]);
+		})
+});

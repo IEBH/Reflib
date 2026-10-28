@@ -170,6 +170,7 @@ export function writeStream(stream, options) {
 						['databaseProvider', 'remote-database-provider'],
 						['database', 'remote-database-name'],
 						['doi', 'electronic-resource-num'],
+						['edition', 'edition'],
 						['isbn', 'isbn'],
 						['accessionNum', 'accession-num'],
 						['label', 'label'],
@@ -343,6 +344,7 @@ export let translations = {
 			{rl: 'workType', raw: 'work-type'},
 			{rl: 'titleShort', raw: 'short-title'},
 			{rl: 'originalPublication', raw: 'orig-pub'},
+			{rl: 'edition', raw: 'edition'},
 		],
 		rawMap: new Map(), // Calculated later for quicker lookup
 	},

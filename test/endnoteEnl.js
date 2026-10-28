@@ -107,3 +107,17 @@ test('EndNote ENL - short titles and original publications survive a write -> re
 			expect(newRefs[0]).to.deep.equal(refs[0]);
 		})
 });
+
+
+test('EndNote ENL - editions survive a write -> read cycle').timeout('30s').do(t => {
+	let tempPath = temp.path({prefix: 'reflib-', suffix: '.enl'});
+	let refs = [{recNumber: '1', type: 'book', title: 'A', edition: '2nd'}];
+
+	return Promise.resolve()
+		.then(()=> reflib.writeFile(tempPath, refs))
+		.then(()=> reflib.readFile(tempPath))
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs[0]).to.deep.equal(refs[0]);
+		})
+});
