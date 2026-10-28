@@ -4,6 +4,7 @@
 * Supported:
 *     `--flag` → `true`
 *     `--flag val` → `'val'`
+*     `--flag=val` → `'val'`
 *     `--flag a b c` → `['a', 'b', 'c']` (variadic, stops at next flag)
 *     `-f` → `true`
 *     `-abc` → `{ a: true, b: true, c: true }`
@@ -46,6 +47,14 @@ export function parse(argv = process.argv.slice(2)) {
 		if (arg.startsWith('--')) {
 			let key = arg.slice(2)
 			if (!key) { i++; break } // -- separator
+
+			let inlineValue = /^(?<key>[^=]+)=(?<value>.*)$/s.exec(key)?.groups // `--flag=value` form
+			if (inlineValue) {
+				result[inlineValue.key] = inlineValue.value
+				i++
+				continue
+			}
+
 			let { values, next } = collectValues(argv, i + 1)
 			result[key] = values.length === 0 ? true
 				: values.length === 1 ? values[0]
