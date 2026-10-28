@@ -110,3 +110,101 @@ test('JSON - reject malformed JSON instead of hanging').timeout('5s').do(t => {
 		)
 });
 
+
+
+/**
+* Write references to a JSON string via the stream writer
+*
+* @param {Array<Object>} refs References to write
+* @param {Object} [options] Options to pass to the writer
+* @returns {Promise<String>} The written JSON content
+*/
+function writeJson(refs, options) {
+	let fakeWriter = fakeStreams.writeStream();
+	let stream = reflib.writeStream('json', fakeWriter, options);
+	return Promise.resolve()
+		.then(()=> stream.start())
+		.then(()=> refs.reduce((chain, ref) => chain.then(()=> stream.write(ref)), Promise.resolve()))
+		.then(()=> stream.end())
+		.then(()=> fakeWriter.contents());
+}
+
+
+/**
+* Read a JSON string via the stream reader
+*
+* @param {String} content JSON content to parse
+* @returns {Promise<Array<Object>>} The parsed references
+*/
+function readJson(content) {
+	return new Promise((resolve, reject) => {
+		let refs = [];
+		reflib.readStream('json', fakeStreams.readStream(content))
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	});
+}
+
+
+test('JSON - write an empty library as valid JSON').do(t => Promise.resolve()
+	.then(()=> writeJson([]))
+	.then(contents => {
+		t.dump(contents);
+		expect(JSON.parse(contents)).to.deep.equal([]);
+		return readJson(contents);
+	})
+	.then(refs => expect(refs).to.deep.equal([]))
+);
+
+
+test('JSON - assign positional recNumbers on read without overwriting existing ones').do(t => Promise.resolve()
+	.then(()=> readJson('[{"title": "A"}, {"recNumber": 7, "title": "B"}, {"title": "C"}]'))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.deep.equal([
+			{recNumber: 1, title: 'A'},
+			{recNumber: 7, title: 'B'},
+			{recNumber: 3, title: 'C'},
+		]);
+	})
+);
+
+
+test('JSON - sort well known keys by priority before other keys').do(t => Promise.resolve()
+	.then(()=> writeJson([{
+		abstract: 'Abstract',
+		zzz: 'Unknown',
+		pages: '1-2',
+		authors: ['X'],
+		title: 'Title',
+		type: 'book',
+		recNumber: 1,
+	}]))
+	.then(contents => {
+		t.dump(contents);
+		expect(Object.keys(JSON.parse(contents)[0])).to.deep.equal([
+			'recNumber',
+			'type',
+			'title',
+			'authors',
+			'pages',
+			'zzz',
+			'abstract',
+		]);
+	})
+);
+
+
+test('JSON - honour the indent and sortKeys options').do(t => Promise.resolve()
+	.then(()=> writeJson([{zzz: 1, title: 'A'}], {indent: 0, sortKeys: false}))
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.equal('[\n{"zzz":1,"title":"A"}\n]');
+	})
+	.then(()=> writeJson([{title: 'A'}], {indent: '\t'}))
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.equal('[\n{\n\t"title": "A"\n}\n]');
+	})
+);

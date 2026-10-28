@@ -366,3 +366,89 @@ test('RIS - map ST and OP tags to titleShort and originalPublication').do(t => P
 		expect(contents).to.match(/^OP {2}- Original publication$/m);
 	})
 );
+
+
+test('RIS - read CRLF files with several references in one chunk and merge SP/EP into pages').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - JOUR',
+		'TI  - A',
+		'AU  - X',
+		'AU  - Y',
+		'SP  - 10',
+		'EP  - 20',
+		'ER  - ',
+		'',
+		'TY  - JOUR',
+		'TI  - B',
+		'SP  - 5',
+		'ER  - ',
+		'',
+	].join('\r\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.deep.equal([
+			{type: 'journalArticle', title: 'A', authors: ['X', 'Y'], pages: '10-20'},
+			{type: 'journalArticle', title: 'B', pages: '5'},
+		]);
+	})
+);
+
+
+test('RIS - fall back to the default type for unknown TY values and drain a final reference with no ER').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - NOTAREALTYPE',
+		'TI  - A',
+		'ER  - ',
+		'',
+		'TY  - BOOK',
+		'TI  - B',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.deep.equal([
+			{type: 'journalArticle', title: 'A'},
+			{type: 'book', title: 'B'},
+		]);
+	})
+);
+
+
+test('RIS - split pages into SP/EP, repeat array fields and do not mutate the reference being written').do(t => {
+	let ref = {
+		type: 'journalArticle',
+		title: 'A',
+		pages: '10-20',
+		authors: ['X', 'Y'],
+		keywords: ['k1', 'k2'],
+		urls: ['u1', 'u2'],
+		city: 'London',
+	};
+	let original = structuredClone(ref);
+
+	return Promise.resolve()
+		.then(()=> writeRis([ref]))
+		.then(contents => {
+			t.dump(contents);
+			expect(ref).to.deep.equal(original);
+			expect(contents.match(/^AU {2}- .*$/gm)).to.deep.equal(['AU  - X', 'AU  - Y']);
+			expect(contents.match(/^KW {2}- .*$/gm)).to.deep.equal(['KW  - k1', 'KW  - k2']);
+			expect(contents.match(/^UR {2}- .*$/gm)).to.deep.equal(['UR  - u1', 'UR  - u2']);
+			expect(contents).to.match(/^SP {2}- 10$/m);
+			expect(contents).to.match(/^EP {2}- 20$/m);
+			expect(contents).to.not.match(/^(PG|pages)/m);
+			return readRis(contents);
+		})
+		.then(refs => {
+			t.dump(refs);
+			expect(refs).to.deep.equal([original]);
+		})
+});
+
+
+test('RIS - write a placeholder title for references without one').do(t => Promise.resolve()
+	.then(()=> writeRis([{type: 'book'}]))
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.match(/^TI {2}- <NO TITLE>$/m);
+	})
+);
