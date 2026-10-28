@@ -137,3 +137,142 @@ test('BibTeX - preserve citation keys + custom fields').do(t => Promise.resolve(
 	})
 
 );
+
+
+/**
+* Read a BibTeX string via the stream reader
+*
+* @param {String} content BibTeX content to parse
+* @param {Object} [options] Options to pass to the reader
+* @returns {Promise<Array<Object>>} The parsed references
+*/
+function readBibtex(content, options) {
+	return new Promise((resolve, reject) => {
+		let refs = [];
+		reflib.readStream('bibtex', fakeStreams.readStream(content), options)
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	});
+}
+
+
+/**
+* Write references to a BibTeX string via the stream writer
+*
+* @param {Array<Object>} refs References to write
+* @param {Object} [options] Options to pass to the writer
+* @returns {Promise<String>} The written BibTeX content
+*/
+function writeBibtex(refs, options) {
+	let fakeWriter = fakeStreams.writeStream();
+	let stream = reflib.writeStream('bibtex', fakeWriter, options);
+	return Promise.resolve()
+		.then(()=> stream.start())
+		.then(()=> refs.reduce((chain, ref, refIndex) => chain
+			.then(()=> stream.write(ref))
+			.then(()=> refIndex < refs.length - 1 && stream.middle(ref))
+		, Promise.resolve()))
+		.then(()=> stream.end())
+		.then(()=> fakeWriter.contents());
+}
+
+
+test('BibTeX - skip comments and text before entries').do(t => Promise.resolve()
+	.then(()=> readBibtex([
+		'% Encoding: UTF-8',
+		'This file was exported by some tool, email me @ example.com',
+		'',
+		'@article{k1,',
+		'  title = {First},',
+		'}',
+		'% Another comment',
+		'@article{k2,',
+		'  title = {Second}',
+		'}',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs.map(r => r.title)).to.deep.equal(['First', 'Second']);
+	})
+);
+
+
+test('BibTeX - parse nested braces, inner lines ending in a brace and single line entries').do(t => Promise.resolve()
+	.then(()=> readBibtex([
+		'@article{k1,',
+		'  abstract = {Something {emph}',
+		'  more {nested {deeply}} here},',
+		'  title = {The {DNA} story}',
+		'}',
+		'@article{k2, title={Compact}, year={2021}}',
+		'@article{k3,',
+		'  title = "Quoted, with comma",',
+		'  note = "Also quoted"',
+		'}',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.have.length(3);
+		expect(refs[0]).to.have.property('abstract', 'Something {emph}\n  more {nested {deeply}} here');
+		expect(refs[0]).to.have.property('title', 'The {DNA} story');
+		expect(refs[1]).to.have.property('title', 'Compact');
+		expect(refs[1]).to.have.property('year', '2021');
+		expect(refs[2]).to.have.property('title', 'Quoted, with comma');
+		expect(refs[2]).to.have.property('notes', 'Also quoted');
+	})
+);
+
+
+test('BibTeX - parse unwrapped values').do(t => Promise.resolve()
+	.then(()=> readBibtex([
+		'@article{k1,',
+		'  title = {A},',
+		'  year = 2020,',
+		'  volume = 12',
+		'}',
+		'@article{k2,',
+		'  title = {B},',
+		'  year = 2021}',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.have.length(2);
+		expect(refs[0]).to.have.property('year', '2020');
+		expect(refs[0]).to.have.property('volume', '12');
+		expect(refs[1]).to.have.property('year', '2021');
+	})
+);
+
+
+test('BibTeX - parse entries split across arbitrary chunk boundaries').do(t => {
+	let content = [
+		'@article{k1,',
+		'  title = {Alpha {beta}',
+		'  gamma},',
+		'  year = 2020,',
+		'  note = "Delta"',
+		'}',
+		'@article{k2,',
+		'  title = {Epsilon}',
+		'}',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> new Promise((resolve, reject) => { // Feed the content one character at a time
+			let refs = [];
+			reflib.readStream('bibtex', fakeStreams.readStream([...content]))
+				.on('ref', ref => refs.push(ref))
+				.on('end', ()=> resolve(refs))
+				.on('error', reject);
+		}))
+		.then(refs => {
+			t.dump(refs);
+			expect(refs).to.have.length(2);
+			expect(refs[0]).to.have.property('title', 'Alpha {beta}\n  gamma');
+			expect(refs[0]).to.have.property('year', '2020');
+			expect(refs[0]).to.have.property('notes', 'Delta');
+			expect(refs[1]).to.have.property('title', 'Epsilon');
+		})
+});
+

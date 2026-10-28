@@ -46,6 +46,26 @@ export function readStream(stream, options) {
 	let state; // Misc state storage when we're digesting ref data
 	let ref = {}; // Reference item being constructed
 
+	/**
+	* Store a parsed field value against the ref under construction
+	* @param {String} value The raw BibTeX value to store against `state.field`
+	*/
+	let setFieldValue = value => {
+		if (// Already have content - and we should overwrite
+			ref[state.field] !== undefined
+			&& (
+				settings.preserveUnkownKeys
+				|| settings.fieldsOverwrite.has(state.field)
+			)
+		) {
+			ref[state.field] = unescape(value);
+		} else if (ref[state.field] !== undefined) { // Already have content - append
+			ref[state.field] += '\n' + unescape(value);
+		} else { // Populate initial value
+			ref[state.field] = unescape(value);
+		}
+	};
+
 	// Queue up the parser in the next tick (so we can return the emitter first)
 	setTimeout(()=> {
 		stream
@@ -71,9 +91,15 @@ export function readStream(stream, options) {
 						ref.type = match.groups.type;
 						mode = MODES.FIELDS;
 						state = null;
+					} else if (mode == MODES.REF && (match = /^[^@]+/.exec(buffer))) { // Text before the next entry (comments, preambles etc.) - discard it
+						// Pass
+					} else if (mode == MODES.REF && (match = /^@(?=[^{]*\n)/.exec(buffer))) { // An '@' which is not followed by an entry header on the same line - discard it
+						// Pass
 					} else if (mode == MODES.FIELDS && (match = /^\s*(?<field>\w+?)\s*=\s*/s.exec(buffer))) {
 						mode = MODES.FIELD_START;
 						state = {field: match.groups.field};
+					} else if (mode == MODES.FIELDS && (match = /^\s*,/.exec(buffer))) { // Stray comma between fields (e.g. after a value which ended a data chunk)
+						// Pass
 					} else if (mode == MODES.FIELDS && (match = /^\s*\}\s*/s.exec(buffer))) { // End of ref
 						emitter.emit('ref', tidyRef(ref, settings));
 						mode = MODES.REF;
@@ -82,37 +108,13 @@ export function readStream(stream, options) {
 					} else if (mode == MODES.FIELD_START && (match = /^\s*(?<fieldWrapper>"|{)\s*/.exec(buffer))) {
 						mode = MODES.FIELD_VALUE;
 						state.fieldWrapper = match.groups.fieldWrapper;
-					} else if (
-						// TODO: Note that we use `\r?\n` as delimiters for field values, this is a cheat to avoid having to implement a full AST parser
-						//       This is a hack but since most BibTeX files use properly formatted BibTeX this should work in the majority of cases
-						//       This WILL break if given one continuous line of BibTeX though
-						//       - MC 2026-01-02
-						mode == MODES.FIELD_VALUE
-						&& (
-							(
-								state.fieldWrapper == '{'
-								&& (match = /^(?<value>.*?)(?<!\\%)\}\s*,?\s*$/sm.exec(buffer))
-							)
-							|| (
-								state.fieldWrapper == '"'
-								&& (match = /^(?<value>.*?)"\s*,?\s*$/sm.exec(buffer))
-							)
-						)
-					) {
+					} else if (mode == MODES.FIELD_START && (match = /^\s*(?<value>[^,}\s"{]+)\s*(?:,|(?=[}\n]))/.exec(buffer))) { // Unwrapped value e.g. `year = 2020,`
 						mode = MODES.FIELDS;
-						if (// Already have content - and we should overwrite
-							ref[state.field] !== undefined
-							&& (
-								settings.preserveUnkownKeys
-								|| settings.fieldsOverwrite.has(state.field)
-							)
-						) {
-							ref[state.field] = unescape(match.groups.value);
-						} else if (ref[state.field] !== undefined) { // Already have content - append
-							ref[state.field] += '\n' + unescape(match.groups.value);
-						} else { // Populate initial value
-							ref[state.field] = unescape(match.groups.value);
-						}
+						setFieldValue(match.groups.value);
+						state = null;
+					} else if (mode == MODES.FIELD_VALUE && (match = matchWrappedValue(buffer, state.fieldWrapper))) {
+						mode = MODES.FIELDS;
+						setFieldValue(match.groups.value);
 						state = null;
 					} else { // Implied else - No match to buffer, let it fill and process next data block
 						break;
@@ -125,6 +127,54 @@ export function readStream(stream, options) {
 	})
 
 	return emitter;
+}
+
+
+/**
+* Find the offset of the closing brace which balances an already-opened brace at the start of a buffer
+*
+* @param {String} buffer The buffer to scan, starting immediately after the opening brace
+* @returns {Number} The offset of the matching closing brace or -1 if the buffer does not (yet) contain it
+*/
+export function findBraceEnd(buffer) {
+	let depth = 0;
+	let scanner = /[{}]/g;
+	let match;
+
+	while ((match = scanner.exec(buffer))) {
+		if (buffer[match.index - 1] == '\\') continue; // Escaped brace - ignore
+
+		if (match[0] == '{') {
+			depth++;
+		} else if (depth == 0) {
+			return match.index;
+		} else {
+			depth--;
+		}
+	}
+
+	return -1;
+}
+
+
+/**
+* Match a wrapped field value (plus any trailing comma) at the start of a buffer
+*
+* @param {String} buffer The buffer to examine, starting immediately after the opening wrapper
+* @param {String} wrapper The wrapper character which opened the value, either `{` or `"`
+* @returns {Object|null} A RegExp-match-like object of `{0: consumedText, groups: {value}}` or null if the buffer does not (yet) contain the full value
+*/
+export function matchWrappedValue(buffer, wrapper) {
+	if (wrapper == '"') return /^(?<value>(?:[^"\\]|\\.)*)"\s*,?/s.exec(buffer);
+
+	let end = findBraceEnd(buffer);
+	if (end < 0) return null;
+
+	let trailing = /^\s*,?/.exec(buffer.slice(end + 1))[0];
+	return {
+		0: buffer.slice(0, end + 1 + trailing.length),
+		groups: {value: buffer.slice(0, end)},
+	};
 }
 
 
