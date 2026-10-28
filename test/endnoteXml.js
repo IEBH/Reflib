@@ -385,3 +385,25 @@ test('EndnoteXML - secondary-title populates the journal and never changes the t
 		expect(refs[0]).to.have.property('journal', 'Journal Article');
 	})
 );
+
+
+test('EndnoteXML - read database, access date, section and work type fields written by the writer').do(t => {
+	let refs = [{
+		recNumber: '1',
+		type: 'journalArticle',
+		title: 'A',
+		databaseProvider: 'NLM',
+		database: 'PubMed',
+		accessDate: '2026-01-02',
+		section: 'Section 3',
+		workType: 'Review',
+	}];
+
+	return Promise.resolve()
+		.then(()=> writeXml(refs))
+		.then(contents => readXml(contents))
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs[0]).to.deep.equal(refs[0]);
+		})
+});

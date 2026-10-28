@@ -335,6 +335,11 @@ export let translations = {
 			{rl: 'year', raw: 'year'},
 			{rl: 'date', raw: 'date'},
 			{rl: 'language', raw: 'language'},
+			{rl: 'databaseProvider', raw: 'remote-database-provider'},
+			{rl: 'database', raw: 'remote-database-name'},
+			{rl: 'accessDate', raw: 'access-date'},
+			{rl: 'section', raw: 'section'},
+			{rl: 'workType', raw: 'work-type'},
 		],
 		rawMap: new Map(), // Calculated later for quicker lookup
 	},
