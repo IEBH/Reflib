@@ -393,3 +393,39 @@ test('BibTeX - keep "/*" sequences in values intact').do(t => Promise.resolve()
 		expect(refs[0]).to.have.deep.property('urls', ['http://example.com/*']);
 	})
 );
+
+
+test('BibTeX - parse citation keys into string recNumbers or keys').do(t => {
+	let content = [
+		'@article{,',
+		'  title = {Empty key}',
+		'}',
+		'@article{42,',
+		'  title = {Numeric key}',
+		'}',
+		'@article{RN12,',
+		'  title = {RN key}',
+		'}',
+		'@article{ Smith2020 ,',
+		'  title = {Custom key}',
+		'}',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> Promise.all([
+			readBibtex(content),
+			readBibtex(content, {recNumberNumeric: false}),
+		]))
+		.then(([defaults, anyKey]) => {
+			t.dump({defaults, anyKey});
+			expect(defaults[0]).to.not.have.property('recNumber');
+			expect(defaults[0]).to.not.have.property('key');
+			expect(defaults[1]).to.have.property('recNumber', '42');
+			expect(defaults[2]).to.have.property('recNumber', '12');
+			expect(defaults[3]).to.not.have.property('recNumber');
+			expect(defaults[3]).to.have.property('key', 'Smith2020');
+
+			expect(anyKey[1]).to.have.property('recNumber', '42');
+			expect(anyKey[3]).to.have.property('recNumber', 'Smith2020');
+		})
+});

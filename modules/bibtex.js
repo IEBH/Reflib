@@ -20,9 +20,11 @@ const MODES = {
 *
 * @param {Stream} stream The readable stream to accept data from
 * @param {Object} [options] Additional options to use when parsing
-* @param {Boolean} [options.recNumberNumeric=true] Only process the BibTeX ID into a recNumber if its a finite numeric, otherwise disguard
+* @param {Boolean} [options.recNumberNumeric=true] Only process the BibTeX ID into a recNumber if its entirely numeric, otherwise disguard. If false any non-empty ID is accepted as the recNumber
 * @param {Boolean} [options.recNumberRNPrefix=true] Accept `RN${NUMBER}` as recNumber if present
 * @param {Boolean} [options.recNumberKey=true] If the reference key cannot be otherwise parsed store it in `key<String>` instead
+*
+* NOTE: `recNumber` is always a string to match the Reflib field spec and the other modules
 * @param {String} [options.fallbackType='unkown'] Reflib fallback type if the incoming type is unrecognised or unsupported
 * @param {Set<String>} [options.fieldsOverwrite] Set of field names where the value is clobbered rather than appended if discovered more than once
 * @param {Boolean} [options.preserveUnknownKeys=true] Retain keys we do not have a direct lookup for in the output object
@@ -70,14 +72,15 @@ export function readStream(stream, options) {
 				while (true) {
 					let match; // Regex storage for match groups
 					if ((mode == MODES.REF) && (match = /^\s*@(?<type>\w+?)\s*\{(?<id>.*?),/s.exec(buffer))) {
-						if (settings.recNumberNumeric && isFinite(match.groups.id)) { // Accept numeric recNumber
-							ref.recNumber = +match.groups.id;
-						} else if (settings.recNumberRNPrefix && /^RN\d+$/.test(match.groups.id)) {
-							ref.recNumber = +match.groups.id.slice(2);
-						} else if (!settings.recNumberNumeric && match.groups.id) { // Non numeric / finite ID - but we're allowed to accept it anyway
-							ref.recNumber = +match.groups.id;
-						} else if (settings.recNumberKey) { // Non numeric, custom looking key, stash in 'key' instead
-							ref.key = match.groups.id;
+						let id = match.groups.id.trim();
+						if (settings.recNumberNumeric && /^\d+$/.test(id)) { // Accept numeric recNumber
+							ref.recNumber = id;
+						} else if (settings.recNumberRNPrefix && /^RN\d+$/.test(id)) {
+							ref.recNumber = id.slice(2);
+						} else if (!settings.recNumberNumeric && id) { // Non numeric ID - but we're allowed to accept it anyway
+							ref.recNumber = id;
+						} else if (settings.recNumberKey && id) { // Non numeric, custom looking key, stash in 'key' instead
+							ref.key = id;
 						} // Implied else - No ID, ignore
 
 						ref.type = match.groups.type;
