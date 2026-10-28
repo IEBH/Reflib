@@ -240,7 +240,7 @@ export function escape(str) {
 * @param {Stream} stream The writable stream to write to
 *
 * @param {Object} [options] Additional options to use when parsing
-* @param {string} [options.defaultType='Misc'] Default citation type to assume when no other type is specified
+* @param {string} [options.defaultType='unknown'] Default Reflib citation type to assume when no other type is specified
 * @param {string} [options.delimeter='\r'] How to split multi-line items
 * @param {Set} [options.omitFields] Set of special fields to always omit, either because we are ignoring or because we have special treatment for them
 * @param {Boolean} [options.keyForce=true] Force a unique ID to exist if we don't already have one for each reference
@@ -252,7 +252,7 @@ export function escape(str) {
 */
 export function writeStream(stream, options) {
 	let settings = {
-		defaultType: 'Misc',
+		defaultType: 'unknown',
 		delimeter: '\n',
 		omitFields: new Set(['key', 'recNumber', 'type']),
 		keyForce: true,
@@ -267,10 +267,9 @@ export function writeStream(stream, options) {
 			return Promise.resolve();
 		},
 		write: ref => {
-			// Fetch Reflib type definition
-			ref.type ||= settings.defaultType;
-			let rlType = translations.types.rlMap.get(ref.type.toLowerCase());
-			let btType = rlType?.bt || settings.defaultType;
+			// Fetch Reflib type definition (without mutating the incoming ref)
+			let rlType = translations.types.rlMap.get((ref.type || settings.defaultType).toLowerCase());
+			let btType = rlType?.bt || 'Misc';
 
 			stream.write(
 				'@' + btType + '{'

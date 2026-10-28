@@ -363,3 +363,18 @@ test('BibTeX - honour preserveUnknownKeys when reading and writing').do(t => {
 		})
 });
 
+
+test('BibTeX - do not mutate the reference being written and default to a Misc entry').do(t => {
+	let ref = {title: 'A'};
+	let snapshot = JSON.stringify(ref);
+
+	return Promise.resolve()
+		.then(()=> writeBibtex([ref, {type: 'journalArticle', title: 'B'}]))
+		.then(contents => {
+			t.dump(contents);
+			expect(JSON.stringify(ref)).to.equal(snapshot);
+			expect(contents).to.match(/^@Misc\{/m);
+			expect(contents).to.match(/^@Article\{/m);
+		})
+});
+
