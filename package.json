@@ -34,7 +34,7 @@
   "homepage": "https://github.com/IEBH/Reflib",
   "enginesStrict": true,
   "engines": {
-    "node": ">=16.6.0"
+    "node": ">=22.23.4"
   },
   "type": "module",
   "exports": {
