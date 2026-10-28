@@ -133,12 +133,13 @@ export function readStream(stream) {
 
 						return buf;
 					})
-					.then(buf => this.readBuffer(buf, { // Hand arrayBuffer off to readBuffer() for processing
+					.then(buf => readBuffer(buf, { // Hand arrayBuffer off to readBuffer() for processing
 						onRef(ref) {
 							emitter.emit('ref', ref);
 						},
 					}))
-					.finally(()=> emitter.emit('end'))
+					.then(()=> emitter.emit('end'))
+					.catch(e => emitter.emit('error', e))
 			})
 	});
 

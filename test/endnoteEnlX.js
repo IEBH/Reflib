@@ -1,6 +1,7 @@
 import test, {expect} from '@momsfriendlydevco/testa';
 import * as reflib from '../lib/default.js';
 import temp from 'temp';
+import {writeFile} from 'node:fs/promises';
 
 import config from './config.js';
 
@@ -37,3 +38,19 @@ test.skip('should run a parse -> write -> parse test with all references').timeo
 			);
 		})
 });
+
+
+test('EndNote ENLX - reject a corrupt file instead of resolving with no references').timeout('30s').do(t => {
+	let tempPath = temp.path({prefix: 'reflib-', suffix: '.enlx'});
+	return Promise.resolve()
+		.then(()=> writeFile(tempPath, 'this is not a valid file'))
+		.then(()=> reflib.readFile(tempPath))
+		.then(
+			()=> { throw new Error('readFile should have rejected') },
+			e => {
+				t.dump(e);
+				expect(e).to.be.an.instanceOf(Error);
+			},
+		)
+});
+

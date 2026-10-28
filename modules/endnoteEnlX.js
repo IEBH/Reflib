@@ -69,6 +69,7 @@ export function readStream(stream) {
 					.then(zip => zip.getEntries()) // Fetch files
 					.then(files => files.find(f => f.filename == 'sdb/sdb.eni')) // Find the file we want
 					.then(sdb => { // Extract that files stream
+						if (!sdb) throw new Error('EnlX file does not contain an "sdb/sdb.eni" database');
 						let writer = new BinaryStringWriter();
 						return sdb.getData(writer);
 					})
@@ -77,7 +78,8 @@ export function readStream(stream) {
 							emitter.emit('ref', ref);
 						},
 					}))
-					.finally(()=> emitter.emit('end'))
+					.then(()=> emitter.emit('end'))
+					.catch(e => emitter.emit('error', e))
 			})
 	});
 
