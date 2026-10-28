@@ -202,3 +202,22 @@ test('Medline - keep pipe characters within values').do(t => Promise.resolve()
 	})
 );
 
+
+test('Medline - treat a blank field with no trailing space as a field, not a continuation line').do(t => Promise.resolve()
+	.then(()=> readMedline([
+		'PMID- 1',
+		'OT  - alpha',
+		'AB  -',
+		'TI  - Title.',
+		'LA  - eng',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.have.length(1);
+		expect(refs[0]).to.have.deep.property('keywords', ['alpha']);
+		expect(refs[0]).to.have.property('abstract', '');
+		expect(refs[0]).to.have.property('title', 'Title');
+	})
+);
+

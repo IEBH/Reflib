@@ -252,3 +252,26 @@ test('RIS - keep pipe characters within values').do(t => Promise.resolve()
 	})
 );
 
+
+test('RIS - treat a blank field with no trailing space as a field, not a continuation line').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - JOUR',
+		'KW  - alpha',
+		'AB  -',
+		'N1  - ',
+		'TI  - Title',
+		'ER  - ',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.deep.equal([{
+			type: 'journalArticle',
+			keywords: ['alpha'],
+			abstract: '',
+			notes: '',
+			title: 'Title',
+		}]);
+	})
+);
+

@@ -255,7 +255,7 @@ export function parseRef(refString, settings) {
 	refString
 		.split(/\r\n|\r|\n/) // Split into lines
 		.forEach(line => {
-			let parsedLine = /^\s*(?<key>[A-Z]+?)\s*-\s+(?<value>.*)$/s.exec(line)?.groups;
+			let parsedLine = /^\s*(?<key>[A-Z]+?)\s*-\s*(?<value>.*)$/s.exec(line)?.groups; // NOTE: Blank fields may have no whitespace after the dash
 
 			if (!parsedLine) { // Doesn't match key=val spec
 				line = line.trimStart();
