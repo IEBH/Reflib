@@ -1,8 +1,10 @@
+import fakeStreams from './fakeStreams.js';
 import test, {expect} from '@momsfriendlydevco/testa';
 import {compareTestRefs} from './data/blue-light.js';
 import {createReadStream, createWriteStream} from 'node:fs';
 import * as reflib from '../lib/default.js';
 import temp from 'temp';
+import {writeFile} from 'node:fs/promises';
 
 import config from './config.js';
 
@@ -84,3 +86,27 @@ test('JSON - run a parse -> write -> parse test with all references').timeout('1
 			);
 		})
 });
+
+
+test('JSON - reject malformed JSON instead of hanging').timeout('5s').do(t => {
+	let tempPath = temp.path({prefix: 'reflib-', suffix: '.json'});
+	return Promise.resolve()
+		.then(()=> t.stage('Via stream reader'))
+		.then(()=> new Promise((resolve, reject) => {
+			reflib.readStream('json', fakeStreams.readStream('[{"title": "A"}, {broken'))
+				.on('end', ()=> reject(new Error('Stream ended without an error event')))
+				.on('error', resolve);
+		}))
+		.then(e => {
+			t.dump(e);
+			expect(e).to.be.an.instanceOf(Error);
+		})
+		.then(()=> t.stage('Via readFile'))
+		.then(()=> writeFile(tempPath, '[{"title": "A"}, {broken'))
+		.then(()=> reflib.readFile(tempPath))
+		.then(
+			()=> { throw new Error('readFile should have rejected') },
+			e => expect(e).to.be.an.instanceOf(Error),
+		)
+});
+

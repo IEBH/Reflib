@@ -27,7 +27,7 @@ export function readStream(stream) {
 					...ref,
 				}))
 			nodeJSONStream.on('end', ()=> emitter.emit('end'))
-			nodeJSONStream.on('error', emitter.emit.bind('error'));
+			nodeJSONStream.on('error', e => emitter.emit('error', e));
 			stream.pipe(nodeJSONStream)
 		}
 
