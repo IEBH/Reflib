@@ -49,19 +49,19 @@
   },
   "dependencies": {
     "@iebh/cacx": "^1.1.0",
-    "@momsfriendlydevco/sort-keys": "^1.0.0",
-    "@zip.js/zip.js": "^2.7.57",
+    "@momsfriendlydevco/sort-keys": "^1.1.2",
+    "@zip.js/zip.js": "^2.24.0",
     "JSONStream": "^1.3.5",
     "mitt": "^3.0.1",
-    "sql.js": "^1.12.0"
+    "sql.js": "^1.15.2"
   },
   "devDependencies": {
-    "@momsfriendlydevco/eslint-config": "^2.3.1",
+    "@momsfriendlydevco/eslint-config": "^2.5.4",
     "@momsfriendlydevco/testa": "^1.2.0",
-    "eslint": "^9.31.0",
-    "execa": "^9.6.1",
-    "lodash-es": "^4.17.23",
-    "nodemon": "^3.1.9",
+    "eslint": "^10.13.0",
+    "execa": "^10.2.1",
+    "lodash-es": "^4.18.1",
+    "nodemon": "^3.1.14",
     "temp": "^0.9.4",
     "vite-plugin-replace": "^0.1.1"
   }
