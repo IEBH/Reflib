@@ -93,3 +93,17 @@ test('EndNote ENL - reference types and arrays survive a write -> read cycle').t
 		})
 });
 
+
+
+test('EndNote ENL - short titles and original publications survive a write -> read cycle').timeout('30s').do(t => {
+	let tempPath = temp.path({prefix: 'reflib-', suffix: '.enl'});
+	let refs = [{recNumber: '1', type: 'journalArticle', title: 'Full title', titleShort: 'Short title', originalPublication: 'Original publication'}];
+
+	return Promise.resolve()
+		.then(()=> reflib.writeFile(tempPath, refs))
+		.then(()=> reflib.readFile(tempPath))
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs[0]).to.deep.equal(refs[0]);
+		})
+});

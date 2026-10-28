@@ -407,3 +407,16 @@ test('EndnoteXML - read database, access date, section and work type fields writ
 			expect(newRefs[0]).to.deep.equal(refs[0]);
 		})
 });
+
+
+test('EndnoteXML - short titles and original publications survive a write -> read cycle').do(t => {
+	let refs = [{recNumber: '1', type: 'journalArticle', title: 'Full title', titleShort: 'Short title', originalPublication: 'Original publication'}];
+
+	return Promise.resolve()
+		.then(()=> writeXml(refs))
+		.then(contents => readXml(contents))
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs[0]).to.deep.equal(refs[0]);
+		})
+});

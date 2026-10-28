@@ -343,3 +343,26 @@ test('RIS - map the ID tag to recNumber in both directions').do(t => Promise.res
 		expect(contents).to.match(/^ID  - 895$/m);
 	})
 );
+
+
+test('RIS - map ST and OP tags to titleShort and originalPublication').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - JOUR',
+		'TI  - Full title',
+		'ST  - Short title',
+		'OP  - Original publication',
+		'ER  - ',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.property('titleShort', 'Short title');
+		expect(refs[0]).to.have.property('originalPublication', 'Original publication');
+		return writeRis(refs);
+	})
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.match(/^ST  - Short title$/m);
+		expect(contents).to.match(/^OP  - Original publication$/m);
+	})
+);

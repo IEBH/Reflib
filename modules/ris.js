@@ -282,8 +282,8 @@ export let translations = {
 
       // These are non-standard fields but we keep these here anyway to prevent data loss
       { rl: "recNumber", raw: "ID" },
-      { rl: "RISShortTitle", raw: "ST" },
-      { rl: "RISOriginalPublication", raw: "OP" },
+      { rl: "titleShort", raw: "ST" },
+      { rl: "originalPublication", raw: "OP" },
     ],
     collectionOutput: [], // Sorted + filtered version of the above to use when outputting
     rawMap: new Map(), // Calculated later for quicker lookup

@@ -176,6 +176,7 @@ export function writeStream(stream, options) {
 						['language', 'language'],
 						['notes', 'notes'],
 						['number', 'number'],
+						['originalPublication', 'orig-pub'],
 						['pages', 'pages'],
 						['researchNotes', 'research-notes'],
 						['section', 'section'],
@@ -340,6 +341,8 @@ export let translations = {
 			{rl: 'accessDate', raw: 'access-date'},
 			{rl: 'section', raw: 'section'},
 			{rl: 'workType', raw: 'work-type'},
+			{rl: 'titleShort', raw: 'short-title'},
+			{rl: 'originalPublication', raw: 'orig-pub'},
 		],
 		rawMap: new Map(), // Calculated later for quicker lookup
 	},

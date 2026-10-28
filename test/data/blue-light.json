@@ -443,6 +443,7 @@
 	},
 	{
 		"recNumber": "925",
+		"originalPublication": "Estudo clínico, prospectivo, aberto, randomizado e comparativo para avaliar a segurança e a eficácia da luz azul versus peróxido de benzoíla 5% no tratamento da acne inflamatória graus II e III.",
 		"databaseProvider": "NLM",
 		"title": "[A prospective, randomized, open and comparative study to evaluate the safety and efficacy of blue light treatment versus a topical benzoyl peroxide 5% formulation in patients with acne grade II and III]",
 		"journal": "An Bras Dermatol",
@@ -651,6 +652,7 @@
 	},
 	{
 		"recNumber": "974",
+		"originalPublication": "Aknetherapie mit sichtbarem Licht. Verkürzung der Bestrahlungszeit durch Verwendung eines Hochdruckstrahlers vom Blaulichttyp.",
 		"databaseProvider": "NLM",
 		"title": "[Therapy of acne with visible light. Decreased irradiation time by using a blue-light high-energy lamp]",
 		"journal": "Dermatol Monatsschr",
@@ -956,6 +958,7 @@
 	},
 	{
 		"recNumber": "924",
+		"originalPublication": "Physikalische Therapieverfahren bei Akne. Licht, Laser, photodynamische Therapie und Peeling.",
 		"databaseProvider": "NLM",
 		"title": "[Physical treatment methods for acne. Light, laser, photodynamic therapy and peeling]",
 		"journal": "Hautarzt",
@@ -988,6 +991,7 @@
 	},
 	{
 		"recNumber": "958",
+		"originalPublication": "Licht-/Laser-/PDT--Therapie bei Akne.",
 		"databaseProvider": "NLM",
 		"title": "[Light, laser and PDT therapy for acne]",
 		"journal": "Hautarzt",
