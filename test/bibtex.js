@@ -378,3 +378,18 @@ test('BibTeX - do not mutate the reference being written and default to a Misc e
 		})
 });
 
+
+
+test('BibTeX - keep "/*" sequences in values intact').do(t => Promise.resolve()
+	.then(()=> readBibtex([
+		'@article{k1,',
+		'  title = {Comments look like /* this */},',
+		'  url = {http://example.com/*}',
+		'}',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.property('title', 'Comments look like /* this */');
+		expect(refs[0]).to.have.deep.property('urls', ['http://example.com/*']);
+	})
+);

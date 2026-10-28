@@ -213,7 +213,6 @@ export function tidyRef(ref, settings) {
 */
 export function unescape(str) {
 	return str
-		.replace(/\/\*/g, '\n')
 		.replace(/\{\\\&\}/g, '&')
 		.replace(/\{\\\%\}/g, '%')
 }
