@@ -81,9 +81,9 @@ export function readStream(stream, options) {
 	// Add rule for where the journal field comes from
 	settings.fieldsReplace.push({
 		to: 'journal',
-		reformat: settings.journal.long
+		reformat: settings.journal == 'long'
 			? (v, ref) => ref.medlineJournalFull || ref.medlineJournalShort
-			: (v, ref) => ref.medlineJournalShort || ref.medlineJournalLong,
+			: (v, ref) => ref.medlineJournalShort || ref.medlineJournalFull,
 	});
 
 	// Allow parsing of Address
@@ -197,6 +197,12 @@ export function writeStream(stream, options) {
 				title: '<NO TITLE>',
 				...xRef,
 			};
+
+			// Populate the Medline journal fields from the generic `journal` field if we don't have the raw values (e.g. the ref came from another format)
+			if (ref.journal && !ref.medlineJournalFull && !ref.medlineJournalShort) {
+				ref.medlineJournalFull = ref.journal;
+				ref.medlineJournalShort = ref.journal;
+			}
 
 			stream.write(
 				translations.fields.collectionOutput

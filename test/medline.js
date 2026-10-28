@@ -221,3 +221,41 @@ test('Medline - treat a blank field with no trailing space as a field, not a con
 	})
 );
 
+
+test('Medline - honour the journal option when picking the long or short journal name').do(t => {
+	let content = [
+		'PMID- 1',
+		'TI  - Title.',
+		'TA  - Short J',
+		'JT  - Long Journal Name',
+		'',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> Promise.all([
+			readMedline(content),
+			readMedline(content, {journal: 'long'}),
+			readMedline(content, {journal: 'short'}),
+		]))
+		.then(([defaults, long, short]) => {
+			t.dump({defaults, long, short});
+			expect(defaults[0]).to.have.property('journal', 'Long Journal Name');
+			expect(long[0]).to.have.property('journal', 'Long Journal Name');
+			expect(short[0]).to.have.property('journal', 'Short J');
+		})
+});
+
+
+test('Medline - write the journal for references without raw Medline journal fields').do(t => Promise.resolve()
+	.then(()=> writeMedline([{type: 'journalArticle', title: 'A', journal: 'Some Journal'}]))
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.match(/^JT  - Some Journal$/m);
+		expect(contents).to.match(/^TA  - Some Journal$/m);
+		return readMedline(contents);
+	})
+	.then(refs => {
+		expect(refs[0]).to.have.property('journal', 'Some Journal');
+	})
+);
+
