@@ -197,7 +197,7 @@ test('RIS - write the correct TY for each reference type').do(t => Promise.resol
 	]))
 	.then(contents => {
 		t.dump(contents);
-		expect(contents.match(/^TY  - .*$/gm)).to.deep.equal([
+		expect(contents.match(/^TY {2}- .*$/gm)).to.deep.equal([
 			'TY  - JOUR',
 			'TY  - BOOK',
 			'TY  - THES',
@@ -314,7 +314,7 @@ test('RIS - convert city even when an abstract is present and keep it over a wri
 	})
 	.then(contents => {
 		t.dump(contents);
-		expect(contents).to.match(/^CY  - London$/m);
+		expect(contents).to.match(/^CY {2}- London$/m);
 		return readRis(contents);
 	})
 	.then(refs => {
@@ -340,7 +340,7 @@ test('RIS - map the ID tag to recNumber in both directions').do(t => Promise.res
 	})
 	.then(contents => {
 		t.dump(contents);
-		expect(contents).to.match(/^ID  - 895$/m);
+		expect(contents).to.match(/^ID {2}- 895$/m);
 	})
 );
 
@@ -362,7 +362,7 @@ test('RIS - map ST and OP tags to titleShort and originalPublication').do(t => P
 	})
 	.then(contents => {
 		t.dump(contents);
-		expect(contents).to.match(/^ST  - Short title$/m);
-		expect(contents).to.match(/^OP  - Original publication$/m);
+		expect(contents).to.match(/^ST {2}- Short title$/m);
+		expect(contents).to.match(/^OP {2}- Original publication$/m);
 	})
 );

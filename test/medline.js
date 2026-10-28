@@ -168,8 +168,8 @@ test('Medline - write PT lines for the type and keep them over a write -> read c
 		.then(()=> writeMedline(refs))
 		.then(contents => {
 			t.dump(contents);
-			expect(contents).to.not.match(/^TY  - /m);
-			expect(contents.match(/^PT  - .*$/gm)).to.deep.equal([
+			expect(contents).to.not.match(/^TY {2}- /m);
+			expect(contents.match(/^PT {2}- .*$/gm)).to.deep.equal([
 				'PT  - Patent',
 				'PT  - Letter',
 				'PT  - Review',
@@ -250,8 +250,8 @@ test('Medline - write the journal for references without raw Medline journal fie
 	.then(()=> writeMedline([{type: 'journalArticle', title: 'A', journal: 'Some Journal'}]))
 	.then(contents => {
 		t.dump(contents);
-		expect(contents).to.match(/^JT  - Some Journal$/m);
-		expect(contents).to.match(/^TA  - Some Journal$/m);
+		expect(contents).to.match(/^JT {2}- Some Journal$/m);
+		expect(contents).to.match(/^TA {2}- Some Journal$/m);
 		return readMedline(contents);
 	})
 	.then(refs => {
@@ -277,8 +277,8 @@ test('Medline - read multiple ISSN entries as an array and write each once').do(
 	})
 	.then(contents => {
 		t.dump(contents);
-		expect(contents.match(/^IS  - .*$/gm)).to.deep.equal(['IS  - 1111-1111 (Print)', 'IS  - 2222-2222 (Electronic)']);
-		expect(contents.match(/^SB  - .*$/gm)).to.deep.equal(['SB  - IM']);
+		expect(contents.match(/^IS {2}- .*$/gm)).to.deep.equal(['IS  - 1111-1111 (Print)', 'IS  - 2222-2222 (Electronic)']);
+		expect(contents.match(/^SB {2}- .*$/gm)).to.deep.equal(['SB  - IM']);
 	})
 );
 
