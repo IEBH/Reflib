@@ -370,3 +370,18 @@ test('EndnoteXML - emit references while streaming rather than only at the end')
 			resolve();
 		});
 }));
+
+
+test('EndnoteXML - secondary-title populates the journal and never changes the type').do(t => Promise.resolve()
+	.then(()=> readXml([
+		'<xml><records><record>',
+		'<ref-type name="Book">6</ref-type>',
+		'<titles><title>Title</title><secondary-title>Journal Article</secondary-title></titles>',
+		'</record></records></xml>',
+	].join('')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.property('type', 'book');
+		expect(refs[0]).to.have.property('journal', 'Journal Article');
+	})
+);

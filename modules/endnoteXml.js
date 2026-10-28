@@ -54,9 +54,6 @@ export function readStream(stream) {
 				let rlType = translations.types.rawMap.get(+text)
 					|| translations.types.rawTextMap.get(node.attrs?.name);
 				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
-			} else if (node.tag == 'secondary-title' && text) { // Zotero "Journal" field translation
-				let rlType = translations.types.rawMap.get(text);
-				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
 			} else if (node.tag == 'record') { // End of record - emit the ref and clear tracking state
 				emitter.emit('ref', ref);
 				ref = {};
