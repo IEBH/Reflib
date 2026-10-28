@@ -41,8 +41,9 @@ export function readStream(stream) {
 				&& node.text // AND there is some content to populate
 			) {
 				ref[translations.fields.rawMap.get(node.tag).rl] = node.text;
-			} else if (node.tag == 'ref-type') { // Special EndnoteXML reference lookup
-				let rlType = translations.types.rawMap.get(node.attrs.name);
+			} else if (node.tag == 'ref-type') { // Special EndnoteXML reference lookup - try the numeric ID in the tag body first, then the name attribute
+				let rlType = translations.types.rawMap.get(+node.text)
+					|| translations.types.rawTextMap.get(node.attrs?.name);
 				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
 			} else if (node.tag == 'secondary-title' && node.text) { // Zotero "Journal" field translation
 				let rlType = translations.types.rawMap.get(node.text);
@@ -387,7 +388,8 @@ export let translations = {
 			{rl: 'web', rawText: 'Web Page', rawId: 12},
 		],
 		rlMap: new Map(), // Calculated later for quicker lookup
-		rawMap: new Map(), // Calculated later for quicker lookup
+		rawMap: new Map(), // Calculated later for quicker lookup, keyed by numeric `rawId`
+		rawTextMap: new Map(), // Calculated later for quicker lookup, keyed by `rawText`
 	},
 	// }}}
 };
@@ -406,5 +408,6 @@ export function setup() {
 	translations.types.collection.forEach(c => {
 		translations.types.rlMap.set(c.rl, c);
 		translations.types.rawMap.set(c.rawId, c);
+		translations.types.rawTextMap.set(c.rawText, c);
 	});
 }

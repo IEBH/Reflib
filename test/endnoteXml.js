@@ -229,3 +229,69 @@ test('EndnotXML - extract URLs from an XML file').timeout('30s').do(()=> Promise
 		expect(refs[0].urls).to.deep.equal(['https://ovidsp.ovid.com/ovidweb.cgi?T=JS&PAGE=reference&D=med27&NEWS=N&AN=40447157']); // NOTE: This is a decoded URL, not the RAW XML escaped value
 	})
 );
+
+
+/**
+* Read an EndNote XML string via the stream reader
+*
+* @param {String} content XML content to parse
+* @returns {Promise<Array<Object>>} The parsed references
+*/
+function readXml(content) {
+	return new Promise((resolve, reject) => {
+		let refs = [];
+		reflib.readStream('endnoteXml', fakeStreams.readStream(content))
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	});
+}
+
+
+/**
+* Write references to an EndNote XML string via the stream writer
+*
+* @param {Array<Object>} refs References to write
+* @param {Object} [options] Options to pass to the writer
+* @returns {Promise<String>} The written XML content
+*/
+function writeXml(refs, options) {
+	let fakeWriter = fakeStreams.writeStream();
+	let stream = reflib.writeStream('endnoteXml', fakeWriter, options);
+	return Promise.resolve()
+		.then(()=> stream.start())
+		.then(()=> refs.reduce((chain, ref) => chain.then(()=> stream.write(ref)), Promise.resolve()))
+		.then(()=> stream.end())
+		.then(()=> fakeWriter.contents());
+}
+
+
+test('EndnoteXML - translate ref-type by numeric ID or name').do(t => Promise.resolve()
+	.then(()=> readXml([
+		'<xml><records>',
+		'<record><ref-type name="Book">6</ref-type><titles><title>By ID</title></titles></record>',
+		'<record><ref-type name="Thesis"></ref-type><titles><title>By name</title></titles></record>',
+		'<record><ref-type name="Journal Article">17</ref-type><titles><title>Journal</title></titles></record>',
+		'<record><ref-type name="Bogus">9999</ref-type><titles><title>Unknown</title></titles></record>',
+		'</records></xml>',
+	].join('')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs.map(r => r.type)).to.deep.equal(['book', 'thesis', 'journalArticle', 'journalArticle']);
+	})
+);
+
+
+test('EndnoteXML - reference types survive a write -> read cycle').do(t => Promise.resolve()
+	.then(()=> writeXml([
+		{type: 'book', title: 'A'},
+		{type: 'conferencePaper', title: 'B'},
+		{type: 'web', title: 'C'},
+	]))
+	.then(contents => readXml(contents))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs.map(r => r.type)).to.deep.equal(['book', 'conferencePaper', 'web']);
+	})
+);
+
