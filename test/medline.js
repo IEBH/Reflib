@@ -1,3 +1,4 @@
+import fakeStreams from './fakeStreams.js';
 import test, {expect} from '@momsfriendlydevco/testa';
 import {compareTestRefs} from './data/blue-light.js';
 import {createReadStream, createWriteStream} from 'node:fs';
@@ -90,3 +91,95 @@ test('Medline - should run a parse -> write -> parse test with all references').
 			});
 		})
 });
+
+
+/**
+* Read a Medline string via the stream reader
+*
+* @param {String} content Medline content to parse
+* @param {Object} [options] Options to pass to the reader
+* @returns {Promise<Array<Object>>} The parsed references
+*/
+function readMedline(content, options) {
+	return new Promise((resolve, reject) => {
+		let refs = [];
+		reflib.readStream('medline', fakeStreams.readStream(content), options)
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	});
+}
+
+
+/**
+* Write references to a Medline string via the stream writer
+*
+* @param {Array<Object>} refs References to write
+* @param {Object} [options] Options to pass to the writer
+* @returns {Promise<String>} The written Medline content
+*/
+function writeMedline(refs, options) {
+	let fakeWriter = fakeStreams.writeStream();
+	let stream = reflib.writeStream('medline', fakeWriter, options);
+	return Promise.resolve()
+		.then(()=> stream.start())
+		.then(()=> refs.reduce((chain, ref) => chain.then(()=> stream.write(ref)), Promise.resolve()))
+		.then(()=> stream.end())
+		.then(()=> fakeWriter.contents());
+}
+
+
+test('Medline - translate PT publication types into Reflib types').do(t => Promise.resolve()
+	.then(()=> readMedline([
+		'PMID- 1',
+		'TI  - Review article.',
+		'PT  - Review',
+		'PT  - Letter',
+		'',
+		'PMID- 2',
+		'TI  - Plain article.',
+		'PT  - Journal Article',
+		'PT  - Multicenter Study',
+		'',
+		'PMID- 3',
+		'TI  - No type.',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.have.length(3);
+		expect(refs[0]).to.have.property('type', 'personalCommunication');
+		expect(refs[0]).to.have.deep.property('medlineTypeSecondary', ['Review']);
+		expect(refs[1]).to.have.property('type', 'journalArticle');
+		expect(refs[1]).to.have.deep.property('medlineTypeSecondary', ['Multicenter Study']);
+		expect(refs[2]).to.have.property('type', 'journalArticle');
+		expect(refs[2]).to.not.have.property('medlineTypeSecondary');
+	})
+);
+
+
+test('Medline - write PT lines for the type and keep them over a write -> read cycle').do(t => {
+	let refs = [
+		{type: 'patent', title: 'A'},
+		{type: 'personalCommunication', title: 'B', medlineTypeSecondary: ['Review']},
+	];
+
+	return Promise.resolve()
+		.then(()=> writeMedline(refs))
+		.then(contents => {
+			t.dump(contents);
+			expect(contents).to.not.match(/^TY  - /m);
+			expect(contents.match(/^PT  - .*$/gm)).to.deep.equal([
+				'PT  - Patent',
+				'PT  - Letter',
+				'PT  - Review',
+			]);
+			return readMedline(contents);
+		})
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs.map(r => r.type)).to.deep.equal(['patent', 'personalCommunication']);
+			expect(newRefs[1]).to.have.deep.property('medlineTypeSecondary', ['Review']);
+		})
+});
+

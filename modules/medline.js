@@ -47,12 +47,21 @@ export function readStream(stream, options) {
 	});
 	*/
 
-	// Translate type
+	// Translate type - the first PT entry with a known translation becomes the Reflib type, all others are kept in `medlineTypeSecondary`
 	settings.fieldsReplace.push({
 		from: 'type',
 		to: 'type',
 		delete: false,
-		reformat: v => translations.types.rawMap[v] || settings.defaultType,
+		reformat: (v, ref) => {
+			let rawTypes = [].concat(v ?? []);
+			let primary = rawTypes.find(raw => translations.types.rawMap.get(raw)?.rl);
+			let secondary = rawTypes.filter(raw => raw !== primary);
+			if (secondary.length > 0) ref.medlineTypeSecondary = secondary;
+
+			return primary
+				? translations.types.rawMap.get(primary).rl
+				: settings.defaultType;
+		},
 	});
 
 	// Reformat authors
@@ -193,8 +202,11 @@ export function writeStream(stream, options) {
 				translations.fields.collectionOutput
 					.filter(f => ref[f.rl]) // Has field?
 					.flatMap(f =>
-						f.rl == 'type' // Translate type field
-							? 'TY  - ' + (translations.types.rlMap.get(ref.type) || translations.types.rlMap.get(settings.defaultType)).raw
+						f.rl == 'type' // Translate type field + append any secondary types
+							? [
+								'PT  - ' + (translations.types.rlMap.get(ref.type) || translations.types.rlMap.get(settings.defaultType)).raw,
+								...(ref.medlineTypeSecondary || []).map(item => 'PT  - ' + item),
+							]
 						: f.rl == 'title' // Special formatting for authors which should follow the title
 							? [
 								'TI  - ' + ref.title,
@@ -340,8 +352,8 @@ export let translations = {
 
 			{rl: 'language', raw: 'LA', sort: 11},
 			{rl: 'medlineGrantNumber', raw: 'GR', sort: 12},
-			{rl: 'type', raw: 'PT', sort: 14},
-			{rl: 'medlineTypeSecondary', raw: 'PTX'}, // Populated with any other write to PT field as array
+			{rl: 'type', raw: 'PT', sort: 14, inputArray: true},
+			{rl: 'medlineTypeSecondary', raw: 'PTX', outputSkip: true}, // Populated with any other PT entries as an array, written out alongside the `type` field
 			{rl: 'medlineDateElectronicPublication', raw: 'DEP', sort: 15},
 			{rl: 'address', raw: 'PL', sort: 16},
 			{rl: 'medlineJournalShort', raw: 'TA', sort: 17},
@@ -418,6 +430,7 @@ export let translations = {
 			{raw: 'Encyclopedia', rl: 'encyclopedia'},
 			{raw: 'Journal Article', rl: 'journalArticle'},
 			{raw: 'Legal Case', rl: 'legalRuleOrRegulation'},
+			{raw: 'Letter', rl: 'personalCommunication'},
 			{raw: 'Manuscript', rl: 'manuscript'},
 			{raw: 'Map', rl: 'map'},
 			{raw: 'Newspaper Article', rl: 'newspaperArticle'},
@@ -490,7 +503,6 @@ export let translations = {
 			{raw: 'Instructional Film and Video', rl: 'filmOrBroadcast'},
 			{raw: 'Introductory Journal Article', rl: 'journalArticle'},
 			{raw: 'Legislation', rl: 'statute'},
-			{raw: 'Letter', rl: 'personalCommunication'},
 			{raw: 'Manuscript, Medical', rl: 'manuscript'},
 			{raw: 'Movable Books', rl: 'books'},
 			{raw: 'News', rl: 'newspaperArticle'},
@@ -630,8 +642,9 @@ export function setup() {
 	});
 
 	// Create lookup object of ref.types with key as .rl / val as the full object
+	// The first entry for each `rl` wins so the preferred translations at the top of the collection are used when writing
 	translations.types.collection.forEach(c => {
-		translations.types.rlMap.set(c.rl, c);
+		if (!translations.types.rlMap.has(c.rl)) translations.types.rlMap.set(c.rl, c);
 		translations.types.rawMap.set(c.raw, c);
 	});
 
