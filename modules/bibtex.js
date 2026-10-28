@@ -36,7 +36,7 @@ export function readStream(stream, options) {
 		recNumberKey: true,
 		fallbackType: 'unknown',
 		fieldsOverwrite: new Set(['type']),
-		preserveUnkownKeys: true,
+		preserveUnknownKeys: true,
 		...options,
 	};
 
@@ -51,17 +51,9 @@ export function readStream(stream, options) {
 	* @param {String} value The raw BibTeX value to store against `state.field`
 	*/
 	let setFieldValue = value => {
-		if (// Already have content - and we should overwrite
-			ref[state.field] !== undefined
-			&& (
-				settings.preserveUnkownKeys
-				|| settings.fieldsOverwrite.has(state.field)
-			)
-		) {
-			ref[state.field] = unescape(value);
-		} else if (ref[state.field] !== undefined) { // Already have content - append
+		if (ref[state.field] !== undefined && !settings.fieldsOverwrite.has(state.field)) { // Already have content - append
 			ref[state.field] += '\n' + unescape(value);
-		} else { // Populate initial value
+		} else { // Populate initial value (or overwrite if the field is in `fieldsOverwrite`)
 			ref[state.field] = unescape(value);
 		}
 	};
@@ -198,13 +190,13 @@ export function tidyRef(ref, settings) {
 					return rlType
 						? [key, rlType.rl] // Can translate incoming type to Reflib type
 						: [key, settings.fallbackType] // Unknown Reflib type varient
-				} else if (!settings.preserveUnkownKeys && !rlField) { // Omit unknown fields
+				} else if (!settings.preserveUnknownKeys && !rlField) { // Omit unknown fields
 					return;
 				} else if (rlField && rlField.array) { // Field needs array casting
 					return [rlField.rl, val.split(rlField.split).filter(Boolean)];
 				} else if (rlField && rlField.rl) { // Known BT field but different RL field
 					return [rlField.rl, val];
-				} else if (settings.preserveUnkownKeys) { // Everything else - add field
+				} else if (settings.preserveUnknownKeys) { // Everything else - add field
 					return [key, val];
 				}
 			})
@@ -266,7 +258,7 @@ export function writeStream(stream, options) {
 		keyForce: true,
 		recNumberRNPrefix: true,
 		recNumberKey: true,
-		preserveUnkownKeys: true,
+		preserveUnknownKeys: true,
 		...options,
 	};
 
@@ -293,11 +285,11 @@ export function writeStream(stream, options) {
 					.filter(([key, val]) =>
 						val // We have a non-nullish val
 						&& !settings.omitFields.has(key)
+						&& (settings.preserveUnknownKeys || translations.fields.rlMap.has(key)) // Known field OR we are preserving unknown fields
 					)
 					.reduce((buf, [rawKey, rawVal], keyIndex, keys) => {
 						// Fetch Reflib field definition
 						let rlField = translations.fields.rlMap.get(rawKey)
-						if (!rlField && !settings.preserveUnkownKeys) return buf; // Unknown field mapping - skip if were omitting unknown fields
 
 						let key = rlField ? rlField.bt : rawKey; // Use Reflib->BibTeX field mapping if we have one, otherwise use raw key
 						let val = escape( // Escape input value, either as an Array via join or as a flat string

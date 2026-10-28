@@ -311,3 +311,55 @@ test('BibTeX - read keywords separated by semicolons').do(t => Promise.resolve()
 	})
 );
 
+
+test('BibTeX - append repeated fields unless listed in fieldsOverwrite').do(t => {
+	let content = [
+		'@article{k1,',
+		'  title = {First},',
+		'  title = {Second},',
+		'  note = {one},',
+		'  note = {two}',
+		'}',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> Promise.all([
+			readBibtex(content),
+			readBibtex(content, {fieldsOverwrite: new Set(['type', 'title'])}),
+		]))
+		.then(([appended, overwritten]) => {
+			t.dump({appended, overwritten});
+			expect(appended[0]).to.have.property('title', 'First\nSecond');
+			expect(appended[0]).to.have.property('notes', 'one\ntwo');
+			expect(overwritten[0]).to.have.property('title', 'Second');
+			expect(overwritten[0]).to.have.property('notes', 'one\ntwo');
+		})
+});
+
+
+test('BibTeX - honour preserveUnknownKeys when reading and writing').do(t => {
+	let content = [
+		'@article{k1,',
+		'  title = {A},',
+		'  foo = {bar}',
+		'}',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> Promise.all([
+			readBibtex(content),
+			readBibtex(content, {preserveUnknownKeys: false}),
+		]))
+		.then(([preserved, dropped]) => {
+			t.dump({preserved, dropped});
+			expect(preserved[0]).to.have.property('foo', 'bar');
+			expect(dropped[0]).to.not.have.property('foo');
+			return writeBibtex(preserved, {preserveUnknownKeys: false});
+		})
+		.then(contents => {
+			t.dump(contents);
+			expect(contents).to.match(/^title=\{A\}$/m);
+			expect(contents).to.not.match(/foo/);
+		})
+});
+
