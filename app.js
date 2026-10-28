@@ -32,7 +32,6 @@ args = parseArgs.expand(args, {
 	'f': 'format',
 	'v': 'verbose',
 });
-args.format ||= 'json';
 // }}}
 
 // Action: Version {{{
@@ -52,12 +51,13 @@ if (args.input) {
 		|| args.output == '-' // OR use STDOUT
 		|| args.output === true // OR output is just specified as a flag with no rider
 	) {
-		if (args.verbose) console.log(`Raw output to STDOUT using "${args.format}" format`);
+		let format = args.format || 'json'; // Default to JSON when writing to STDOUT
+		if (args.verbose) console.log(`Raw output to STDOUT using "${format}" format`);
 
 		let stream = reflib.writeStream(
-			args.format,
+			format,
 			process.stdout,
-			args.format == 'json' ? {indent:'\t'} : {},
+			format == 'json' ? {indent:'\t'} : {},
 		);
 		await stream.start();
 		await Array.fromAsync(refs, (ref, refIndex) => Promise.resolve()
@@ -66,8 +66,8 @@ if (args.input) {
 		);
 		await stream.end();
 	} else if (args.output) {
-		if (args.verbose) console.log('Writing', args.output);
-		await reflib.writeFile(args.output, refs);
+		if (args.verbose) console.log('Writing', args.output, args.format ? `using "${args.format}" format` : '');
+		await reflib.writeFile(args.output, refs, args.format ? {module: args.format} : {}); // Use the --format override if given, otherwise detect from the file extension
 	}
 
 	if (args.verbose) console.log('All done');

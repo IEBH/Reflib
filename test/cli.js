@@ -57,3 +57,24 @@ test('Output BibTeX to STDOUT without a trailing blank line', async (t) => {
 	expect(stdout.match(/^@/gm)).to.have.length(10);
 });
 
+
+test('Honour --format when writing to a file', async (t) => {
+	let tempPath = temp.path({prefix: 'reflib-', suffix: '.dat'});
+
+	t.stage('Convert XML -> RIS into a file with an unknown extension');
+	await execa(binPath, [
+		'--input',
+		`${__dirname}/data/blue-light-tiny.xml`,
+		'--output',
+		tempPath,
+		'--format',
+		'ris',
+	]);
+
+	t.stage('Check output file');
+	let refs = await reflib.readFile(tempPath, {module: 'ris'});
+	expect(refs).to.be.an('array');
+	expect(refs).to.have.length(10);
+	expect(refs[0]).to.have.property('type', 'journalArticle');
+});
+
