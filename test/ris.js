@@ -33,17 +33,16 @@ import config from './config.js';
 	);
 
 
-	test(`RIS - should read a RIS file #2 (via promise) - ${risFile}`).timeout('30s').do(()=> {
-		reflib
-			.readFile(`${config.testPath}/data/${risFile}`) //foreach risFile
-			.then(refs => {
-				if (risFile == "blue-light.ris") {
-					compareTestRefs(refs, {profile: "ris"});
-				} else if (risFile == "Embase-aerosols.ris") {
-					compareEmbaseTestRefs(refs, {profile: "ris"});
-				}
-			})
-	});
+	test(`RIS - should read a RIS file #2 (via promise) - ${risFile}`).timeout('30s').do(()=> reflib
+		.readFile(`${config.testPath}/data/${risFile}`) //foreach risFile
+		.then(refs => {
+			if (risFile == "blue-light.ris") {
+				compareTestRefs(refs, {profile: "ris"});
+			} else if (risFile == "Embase-aerosols.ris") {
+				compareEmbaseTestRefs(refs, {profile: "ris"});
+			}
+		})
+	);
 
 
 	test(`RIS - should write a RIS file #1 (via promise)- ${risFile}`).timeout('30s').do(t => {
