@@ -307,3 +307,52 @@ test('Medline - trim the trailing dot from a title even when it is the last fiel
 	})
 );
 
+
+test('Medline - omit authors and journal keys when the record has no such data').do(t => Promise.resolve()
+	.then(()=> readMedline([
+		'PMID- 1',
+		'TI  - Title.',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.not.have.property('authors');
+		expect(refs[0]).to.not.have.property('journal');
+	})
+);
+
+
+test('Medline - honour the reformatAuthors option').do(t => {
+	let content = [
+		'PMID- 1',
+		'TI  - Title.',
+		'AU  - Smith JA',
+		'AU  - Jahanian-Najafabadi A',
+		'',
+	].join('\n');
+
+	return Promise.resolve()
+		.then(()=> Promise.all([
+			readMedline(content),
+			readMedline(content, {reformatAuthors: false}),
+		]))
+		.then(([reformatted, raw]) => {
+			t.dump({reformatted, raw});
+			expect(reformatted[0]).to.have.deep.property('authors', ['Smith, J. A.', 'Jahanian-Najafabadi, A.']);
+			expect(raw[0]).to.have.deep.property('authors', ['Smith JA', 'Jahanian-Najafabadi A']);
+		})
+});
+
+
+test('Medline - do not mutate a caller supplied fieldsReplace array').do(t => {
+	let fieldsReplace = [{from: 'medlinePMID', to: 'pmid'}];
+
+	return Promise.resolve()
+		.then(()=> readMedline('PMID- 123\nTI  - Title.\n\n', {fieldsReplace}))
+		.then(refs => {
+			t.dump(refs);
+			expect(refs[0]).to.have.property('pmid', '123');
+			expect(fieldsReplace).to.have.length(1);
+		})
+});
+

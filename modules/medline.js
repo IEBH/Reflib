@@ -34,6 +34,7 @@ export function readStream(stream, options) {
 		fieldsReplace: [],
 		...options,
 	};
+	settings.fieldsReplace = [...settings.fieldsReplace]; // Shallow copy so we never mutate a caller supplied array
 
 	// Settings parsing {{{
 
@@ -64,26 +65,33 @@ export function readStream(stream, options) {
 		},
 	});
 
-	// Reformat authors
+	// Populate authors (optionally reformatted into the Reflib "Last, I. N." style)
 	settings.fieldsReplace.push({
 		to: 'authors',
-		reformat: (authors, ref) => (ref.medlineAuthorsShort || ref.medlineAuthorsFull || []).map(author =>
-			author.replace(/^(?<last>[\w-]+?) (?<initials>\w+)$/, (match, last, initials) => {
-				return (
-					last && initials ? last + ', ' + initials.split('').map(i => `${i}.`).join(' ')
-					: last ? last
-					: match
+		reformat: (authors, ref) => {
+			let rawAuthors = ref.medlineAuthorsShort || ref.medlineAuthorsFull;
+			if (!rawAuthors) return false; // No author data - leave the field unset
+
+			return settings.reformatAuthors
+				? rawAuthors.map(author =>
+					author.replace(/^(?<last>[\w-]+?) (?<initials>\w+)$/, (match, last, initials) => {
+						return (
+							last && initials ? last + ', ' + initials.split('').map(i => `${i}.`).join(' ')
+							: last ? last
+							: match
+						)
+					})
 				)
-			})
-		),
+				: [...rawAuthors];
+		},
 	});
 
 	// Add rule for where the journal field comes from
 	settings.fieldsReplace.push({
 		to: 'journal',
 		reformat: settings.journal == 'long'
-			? (v, ref) => ref.medlineJournalFull || ref.medlineJournalShort
-			: (v, ref) => ref.medlineJournalShort || ref.medlineJournalFull,
+			? (v, ref) => ref.medlineJournalFull || ref.medlineJournalShort || false
+			: (v, ref) => ref.medlineJournalShort || ref.medlineJournalFull || false,
 	});
 
 	// Allow parsing of Address
