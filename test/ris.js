@@ -1,3 +1,4 @@
+import fakeStreams from './fakeStreams.js';
 import test, {expect} from '@momsfriendlydevco/testa';
 import {compareTestRefs} from "./data/blue-light.js";
 import {compareEmbaseTestRefs} from "./data/Embase-aerosols.js";
@@ -155,3 +156,77 @@ import config from './config.js';
 	}
 
 });
+
+
+/**
+* Read a RIS string via the stream reader
+*
+* @param {String} content RIS content to parse
+* @param {Object} [options] Options to pass to the reader
+* @returns {Promise<Array<Object>>} The parsed references
+*/
+function readRis(content, options) {
+	return new Promise((resolve, reject) => {
+		let refs = [];
+		reflib.readStream('ris', fakeStreams.readStream(content), options)
+			.on('ref', ref => refs.push(ref))
+			.on('end', ()=> resolve(refs))
+			.on('error', reject);
+	});
+}
+
+
+/**
+* Write references to a RIS string via the stream writer
+*
+* @param {Array<Object>} refs References to write
+* @param {Object} [options] Options to pass to the writer
+* @returns {Promise<String>} The written RIS content
+*/
+function writeRis(refs, options) {
+	let fakeWriter = fakeStreams.writeStream();
+	let stream = reflib.writeStream('ris', fakeWriter, options);
+	return Promise.resolve()
+		.then(()=> stream.start())
+		.then(()=> refs.reduce((chain, ref) => chain.then(()=> stream.write(ref)), Promise.resolve()))
+		.then(()=> stream.end())
+		.then(()=> fakeWriter.contents());
+}
+
+
+test('RIS - write the correct TY for each reference type').do(t => Promise.resolve()
+	.then(()=> writeRis([
+		{type: 'journalArticle', title: 'A'},
+		{type: 'book', title: 'B'},
+		{type: 'thesis', title: 'C'},
+		{type: 'personalCommunication', title: 'D'},
+		{type: 'filmOrBroadcast', title: 'E'},
+		{title: 'F'}, // No type - should use the default
+	]))
+	.then(contents => {
+		t.dump(contents);
+		expect(contents.match(/^TY  - .*$/gm)).to.deep.equal([
+			'TY  - JOUR',
+			'TY  - BOOK',
+			'TY  - THES',
+			'TY  - PCOMM',
+			'TY  - VIDEO',
+			'TY  - JOUR',
+		]);
+	})
+);
+
+
+test('RIS - reference types survive a write -> read cycle').do(t => Promise.resolve()
+	.then(()=> writeRis([
+		{type: 'book', title: 'A'},
+		{type: 'generic', title: 'B'},
+		{type: 'report', title: 'C'},
+	]))
+	.then(contents => readRis(contents))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs.map(r => r.type)).to.deep.equal(['book', 'generic', 'report']);
+	})
+);
+

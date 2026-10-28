@@ -108,7 +108,7 @@ export function writeStream(stream, options) {
 					.filter(f => ref[f.rl]) // Has field?
 					.flatMap(f =>
 						f.rl == 'type' // Translate type field
-							? 'TY  - ' + (translations.types.rlMap[ref.type] || 'JOUR')
+							? 'TY  - ' + (translations.types.rlMap.get(ref.type)?.raw || 'JOUR')
 						: f.outputRepeat && Array.isArray(ref[f.rl]) // Repeat array types
 							? ref[f.rl].map(item => `${f.raw}  - ${item}`)
 						: Array.isArray(ref[f.rl]) // Flatten arrays into text
@@ -375,8 +375,9 @@ export function setup() {
 	});
 
 	// Create lookup object of ref.types with key as .rl / val as the full object
+	// The first entry for each `rl` wins so the high-priority translations at the top of the collection are used when writing
 	translations.types.collection.forEach(c => {
-		translations.types.rlMap.set(c.rl, c);
+		if (!translations.types.rlMap.has(c.rl)) translations.types.rlMap.set(c.rl, c);
 		translations.types.rawMap.set(c.raw, c);
 	});
 
