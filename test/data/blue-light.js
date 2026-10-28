@@ -67,7 +67,7 @@ export function compareTestRefs(refs, options) {
 		excludeKeys: [],
 		...options,
 	};
-	if (['medline', 'ris'].includes(settings.profile)) settings.excludeKeys.push('recNumber');
+	if (['medline'].includes(settings.profile)) settings.excludeKeys.push('recNumber');
 	if (['medline'].includes(settings.profile)) settings.excludeKeys.push('address', 'isbn', 'notes', 'custom1', 'custom2');
 
 	settings.excludeKeys = new Set(settings.excludeKeys); // Cast `excludeKeys` into a faster Set lookup

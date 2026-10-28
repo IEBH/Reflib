@@ -281,7 +281,7 @@ export let translations = {
       { rl: "accessDate", raw: "Y2" },
 
       // These are non-standard fields but we keep these here anyway to prevent data loss
-      { rl: "RISID", raw: "ID" },
+      { rl: "recNumber", raw: "ID" },
       { rl: "RISShortTitle", raw: "ST" },
       { rl: "RISOriginalPublication", raw: "OP" },
     ],

@@ -323,3 +323,23 @@ test('RIS - convert city even when an abstract is present and keep it over a wri
 	})
 );
 
+
+
+test('RIS - map the ID tag to recNumber in both directions').do(t => Promise.resolve()
+	.then(()=> readRis([
+		'TY  - JOUR',
+		'ID  - 895',
+		'TI  - Title',
+		'ER  - ',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.property('recNumber', '895');
+		return writeRis(refs);
+	})
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.match(/^ID  - 895$/m);
+	})
+);
