@@ -196,7 +196,7 @@ export function tidyRef(ref, settings) {
 				} else if (!settings.preserveUnknownKeys && !rlField) { // Omit unknown fields
 					return;
 				} else if (rlField && rlField.array) { // Field needs array casting
-					return [rlField.rl, val.split(rlField.split).filter(Boolean)];
+					return [rlField.rl, (typeof rlField.split == 'function' ? rlField.split(val) : val.split(rlField.split)).filter(Boolean)];
 				} else if (rlField && rlField.rl) { // Known BT field but different RL field
 					return [rlField.rl, val];
 				} else if (settings.preserveUnknownKeys) { // Everything else - add field
@@ -294,7 +294,8 @@ export function writeStream(stream, options) {
 
 						let key = rlField ? rlField.bt : rawKey; // Use Reflib->BibTeX field mapping if we have one, otherwise use raw key
 						let val = escape( // Escape input value, either as an Array via join or as a flat string
-							Array.isArray(rawVal) ? rawVal.join(rlField?.join ?? ', ') // Join arrays using the field specific joiner, falling back to CSV
+							Array.isArray(rawVal) && typeof rlField?.join == 'function' ? rlField.join(rawVal) // Join arrays using the field specific join function
+							: Array.isArray(rawVal) ? rawVal.join(rlField?.join ?? ', ') // Join arrays using the field specific joiner, falling back to CSV
 							: rawVal // Splat everything else as a string
 						);
 
@@ -345,8 +346,8 @@ function generateCitationKey(ref) {
 * @type {Object}
 * @property {Array<Object>} fields Field translations between Reflib (`rl`) and BibTeX format (`bt`)
 * @property {Boolean} [fields.array=false] Whether the Reflib field is an array which needs splitting when reading and joining when writing
-* @property {RegExp} [fields.split] RegExp used to split the BibTeX value into an array when reading
-* @property {String} [fields.join] String used to join the array into a BibTeX value when writing
+* @property {RegExp|Function} [fields.split] RegExp used to split the BibTeX value into an array when reading, or a function called as `(val:String)` returning the array
+* @property {String|Function} [fields.join] String used to join the array into a BibTeX value when writing, or a function called as `(vals:Array)` returning the string
 */
 export let translations = {
 	// Field translations {{{
@@ -375,7 +376,12 @@ export let translations = {
 			// Nonestandard but used anyway
 			{rl: 'abstract', bt: 'abstract'},
 			{rl: 'language', bt: 'language'},
-			{rl: 'keywords', bt: 'keywords', array: true, split: /\s*[,;]\s*/, join: ', '},
+			{
+				rl: 'keywords', bt: 'keywords', array: true,
+				// Keywords (e.g. MeSH terms) can themselves contain commas, so prefer semicolons when they do and split on whichever separator is present
+				split: val => val.includes(';') ? val.split(/\s*;\s*/) : val.split(/\s*,\s*/),
+				join: vals => vals.some(v => v.includes(',')) ? vals.join('; ') : vals.join(', '),
+			},
 			{rl: 'urls', bt: 'url', array: true, split: /\s*[,;]\s+|\s+/, join: ' '},
 
 			// Unknown how to translate these

@@ -439,3 +439,19 @@ test('BibTeX - writer hooks all return promises').do(()=> {
 	return stream.end()
 		.then(result => expect(result).to.be.undefined);
 });
+
+
+test('BibTeX - keywords containing commas survive a write -> read cycle').do(t => {
+	let keywords = ['Administration, Cutaneous', 'Acne Vulgaris/*therapy', 'Lasers, Dye/*therapeutic use'];
+
+	return Promise.resolve()
+		.then(()=> writeBibtex([{type: 'journalArticle', title: 'A', keywords}]))
+		.then(contents => {
+			t.dump(contents);
+			expect(contents).to.match(/^keywords=\{Administration, Cutaneous; Acne Vulgaris\/\*therapy; Lasers, Dye\/\*therapeutic use\}/m);
+			return readBibtex(contents);
+		})
+		.then(refs => {
+			expect(refs[0]).to.have.deep.property('keywords', keywords);
+		})
+});
