@@ -10,3 +10,10 @@ test('Identify formats from file paths', ()=> {
 	expect(identifyFormat('My Refs.data.tsv')).to.have.property('id', 'tsv');
 	expect(identifyFormat('My Refs.xml')).to.have.property('id', 'endnoteXml');
 });
+
+
+test('Return null (not undefined) for unknown or missing extensions', ()=> {
+	expect(identifyFormat('My Refs.docx')).to.be.null;
+	expect(identifyFormat('My Refs')).to.be.null;
+	expect(identifyFormat('/home/user.name/refs')).to.be.null;
+});
