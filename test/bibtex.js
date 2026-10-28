@@ -214,7 +214,7 @@ test('BibTeX - parse nested braces, inner lines ending in a brace and single lin
 	.then(refs => {
 		t.dump(refs);
 		expect(refs).to.have.length(3);
-		expect(refs[0]).to.have.property('abstract', 'Something {emph}\n  more {nested {deeply}} here');
+		expect(refs[0]).to.have.property('abstract', 'Something {emph}\r  more {nested {deeply}} here');
 		expect(refs[0]).to.have.property('title', 'The {DNA} story');
 		expect(refs[1]).to.have.property('title', 'Compact');
 		expect(refs[1]).to.have.property('year', '2021');
@@ -269,7 +269,7 @@ test('BibTeX - parse entries split across arbitrary chunk boundaries').do(t => {
 		.then(refs => {
 			t.dump(refs);
 			expect(refs).to.have.length(2);
-			expect(refs[0]).to.have.property('title', 'Alpha {beta}\n  gamma');
+			expect(refs[0]).to.have.property('title', 'Alpha {beta}\r  gamma');
 			expect(refs[0]).to.have.property('year', '2020');
 			expect(refs[0]).to.have.property('notes', 'Delta');
 			expect(refs[1]).to.have.property('title', 'Epsilon');
@@ -329,10 +329,10 @@ test('BibTeX - append repeated fields unless listed in fieldsOverwrite').do(t =>
 		]))
 		.then(([appended, overwritten]) => {
 			t.dump({appended, overwritten});
-			expect(appended[0]).to.have.property('title', 'First\nSecond');
-			expect(appended[0]).to.have.property('notes', 'one\ntwo');
+			expect(appended[0]).to.have.property('title', 'First\rSecond');
+			expect(appended[0]).to.have.property('notes', 'one\rtwo');
 			expect(overwritten[0]).to.have.property('title', 'Second');
-			expect(overwritten[0]).to.have.property('notes', 'one\ntwo');
+			expect(overwritten[0]).to.have.property('notes', 'one\rtwo');
 		})
 });
 
@@ -455,3 +455,22 @@ test('BibTeX - keywords containing commas survive a write -> read cycle').do(t =
 			expect(refs[0]).to.have.deep.property('keywords', keywords);
 		})
 });
+
+
+test('BibTeX - normalise line breaks within values to the Reflib delimiter').do(t => Promise.resolve()
+	.then(()=> readBibtex('@article{k1,\r\n  title = {A},\r\n  ISSN = {1476-4172 (Print)\r\n1476-4172},\r\n  note = {one\ntwo\rthree}\r\n}\r\n'))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.property('isbn', '1476-4172 (Print)\r1476-4172');
+		expect(refs[0]).to.have.property('notes', 'one\rtwo\rthree');
+		return writeBibtex(refs);
+	})
+	.then(contents => {
+		t.dump(contents);
+		expect(contents).to.match(/^issn=\{1476-4172 \(Print\)\n1476-4172\}/m); // Written with regular newlines
+		return readBibtex(contents);
+	})
+	.then(refs => {
+		expect(refs[0]).to.have.property('isbn', '1476-4172 (Print)\r1476-4172');
+	})
+);

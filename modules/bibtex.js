@@ -28,11 +28,13 @@ const MODES = {
 * @param {String} [options.fallbackType='unkown'] Reflib fallback type if the incoming type is unrecognised or unsupported
 * @param {Set<String>} [options.fieldsOverwrite] Set of field names where the value is clobbered rather than appended if discovered more than once
 * @param {Boolean} [options.preserveUnknownKeys=true] Retain keys we do not have a direct lookup for in the output object
+* @param {String} [options.delimeter='\r'] Delimiter to normalise multi-line values to, this matches the convention used by the other Reflib modules
 *
 * @returns {Object} A readable stream analogue defined in `modules/interface.js`
 */
 export function readStream(stream, options) {
 	let settings = {
+		delimeter: '\r',
 		recNumberNumeric: true,
 		recNumberRNPrefix: true,
 		recNumberKey: true,
@@ -53,10 +55,12 @@ export function readStream(stream, options) {
 	* @param {String} value The raw BibTeX value to store against `state.field`
 	*/
 	let setFieldValue = value => {
+		let parsed = unescape(value).replace(/\r\n|\r|\n/g, settings.delimeter); // Normalise line breaks within the value to the Reflib delimiter
+
 		if (ref[state.field] !== undefined && !settings.fieldsOverwrite.has(state.field)) { // Already have content - append
-			ref[state.field] += '\n' + unescape(value);
+			ref[state.field] += settings.delimeter + parsed;
 		} else { // Populate initial value (or overwrite if the field is in `fieldsOverwrite`)
-			ref[state.field] = unescape(value);
+			ref[state.field] = parsed;
 		}
 	};
 
@@ -243,7 +247,7 @@ export function escape(str) {
 *
 * @param {Object} [options] Additional options to use when parsing
 * @param {string} [options.defaultType='unknown'] Default Reflib citation type to assume when no other type is specified
-* @param {string} [options.delimeter='\r'] How to split multi-line items
+* @param {string} [options.delimeter='\n'] Line break to use when writing multi-line values
 * @param {Set} [options.omitFields] Set of special fields to always omit, either because we are ignoring or because we have special treatment for them
 * @param {Boolean} [options.keyForce=true] Force a unique ID to exist if we don't already have one for each reference
 * @param {Boolean} [options.recNumberRNPrefix=true] Rewrite recNumber fields as `RN${NUMBER}`
@@ -297,7 +301,7 @@ export function writeStream(stream, options) {
 							Array.isArray(rawVal) && typeof rlField?.join == 'function' ? rlField.join(rawVal) // Join arrays using the field specific join function
 							: Array.isArray(rawVal) ? rawVal.join(rlField?.join ?? ', ') // Join arrays using the field specific joiner, falling back to CSV
 							: rawVal // Splat everything else as a string
-						);
+						).replace(/\r\n|\r|\n/g, settings.delimeter); // Write multi-line values using the output delimiter
 
 						return buf + // Return string buffer of ref under construction
 							`${key}={${val}}` // Append ref key=val pair to buffer
