@@ -295,3 +295,29 @@ test('EndnoteXML - reference types survive a write -> read cycle').do(t => Promi
 	})
 );
 
+
+test('EndnoteXML - join multiple <style> runs within one value').do(t => Promise.resolve()
+	.then(()=> readXml([
+		'<xml><records><record>',
+		'<ref-type name="Journal Article">17</ref-type>',
+		'<contributors><authors>',
+		'<author><style face="normal">Smith, </style><style face="bold">J.</style></author>',
+		'<author><style face="normal">Jones, K.</style></author>',
+		'</authors></contributors>',
+		'<titles><title><style face="normal">Effect of </style><style face="italic">E. coli</style><style face="normal"> on things &amp; stuff</style></title></titles>',
+		'<keywords><keyword><style face="normal">alpha</style></keyword><keyword><style face="normal">be</style><style face="italic">ta</style></keyword></keywords>',
+		'<abstract>',
+		'  <style face="normal">Plain</style>',
+		'</abstract>',
+		'</record></records></xml>',
+	].join('')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs).to.have.length(1);
+		expect(refs[0]).to.have.property('title', 'Effect of E. coli on things & stuff');
+		expect(refs[0]).to.have.deep.property('authors', ['Smith, J.', 'Jones, K.']);
+		expect(refs[0]).to.have.deep.property('keywords', ['alpha', 'beta']);
+		expect(refs[0]).to.have.property('abstract', 'Plain');
+	})
+);
+

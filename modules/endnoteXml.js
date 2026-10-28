@@ -23,39 +23,39 @@ export function readStream(stream) {
 		flattenText: false,
 		flattenChildren: false,
 		flattenAttrs: false,
+		trimText: false, // Trimming is handled per value below so that adjacent <style> runs keep their inner whitespace
 		onTagClose(node, stack) {
-			if (node.tag == 'title' && node.text) {
-				ref.title = node.text;
-			} else if (node.tag == 'author' && node.text) {
+			// Prefer text gathered from inner <style> runs (if any) over the tags own text
+			let text = (node.styledText ?? node.text ?? '').trim();
+
+			if (node.tag == 'style') { // Embedded <style> tag - EndNote wraps all values in these and splits a value into multiple runs when the formatting changes, so gather all runs onto the parent
+				let parent = stack.at(-2);
+				if (!parent) throw new Error('<style> tag with orphaned children!');
+				if (node.text) parent.styledText = (parent.styledText || '') + node.text;
+			} else if (node.tag == 'title' && text) {
+				ref.title = text;
+			} else if (node.tag == 'author' && text) {
 				if (!ref.authors) ref.authors = [];
-				ref.authors.push(node.text);
-			} else if (node.tag == 'keyword' && node.text) {
+				ref.authors.push(text);
+			} else if (node.tag == 'keyword' && text) {
 				if (!ref.keywords) ref.keywords = [];
-				ref.keywords.push(node.text);
-			} else if (node.tag == 'url' && node.text) {
+				ref.keywords.push(text);
+			} else if (node.tag == 'url' && text) {
 				if (!ref.urls) ref.urls = [];
-				ref.urls.push(node.text);
+				ref.urls.push(text);
 			} else if (
 				!['authors', 'keywords', 'urls'].includes(node.tag) // Not one of the above collectors
 				&& translations.fields.rawMap.has(node.tag) // AND other supported field mapping
-				&& node.text // AND there is some content to populate
+				&& text // AND there is some content to populate
 			) {
-				ref[translations.fields.rawMap.get(node.tag).rl] = node.text;
+				ref[translations.fields.rawMap.get(node.tag).rl] = text;
 			} else if (node.tag == 'ref-type') { // Special EndnoteXML reference lookup - try the numeric ID in the tag body first, then the name attribute
-				let rlType = translations.types.rawMap.get(+node.text)
+				let rlType = translations.types.rawMap.get(+text)
 					|| translations.types.rawTextMap.get(node.attrs?.name);
 				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
-			} else if (node.tag == 'secondary-title' && node.text) { // Zotero "Journal" field translation
-				let rlType = translations.types.rawMap.get(node.text);
+			} else if (node.tag == 'secondary-title' && text) { // Zotero "Journal" field translation
+				let rlType = translations.types.rawMap.get(text);
 				ref.type = rlType?.rl || 'journalArticle'; // It should never happen that we have an unknown type but default to something sane if we ever see one
-			} else if (node.tag == 'style' && node.text) { // Embedded <style> tag Endnote seems to wrap all inner values with these even though they dont serve any purpose
-				// Re-call onTagClose() using the parent node instead
-				let outerNode = { // Create shallow copy of 'real' parent node
-					...stack.at(-2),
-					text: node.text, // ... but copy in this nodes text as if this inner `<style>` wrapper didn't exist
-				};
-				if (!outerNode) throw new Error('<style> tag with orphaned children!');
-				parserOptions.onTagClose(outerNode, stack.slice(0, -1));
 			} else if (node.tag == 'record') { // End of record - emit the ref and clear tracking state
 				emitter.emit('ref', ref);
 				ref = {};
