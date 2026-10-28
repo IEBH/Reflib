@@ -140,15 +140,7 @@ import config from './config.js';
 						Object.keys(originalRefs[refOffset]).forEach((key) => {
 							if (originalRefs[refOffset][key] === "") return; //Allow some propertys' content are empty (EXP. SN  - 0028-2162 => AD is empty (Embase-aerosols.ris))
 							expect(ref).to.have.property(key);
-							//expect(ref[key]).to.deep.equal(originalRefs[refOffset][key]);
-							if (
-								key === "type" &&
-								originalRefs[refOffset][key] === "generic"
-							) {
-								expect(true).to.be.true; //Allow type equal to "generic" & "journalArticle"
-							} else {
-								expect(ref[key]).to.deep.equal(originalRefs[refOffset][key]);
-							}
+							expect(ref[key]).to.deep.equal(originalRefs[refOffset][key]);
 						});
 					});
 				});
