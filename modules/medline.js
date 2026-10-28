@@ -394,7 +394,6 @@ export let translations = {
 			{rl: 'medlineEditor', raw: 'ED'},
 			{rl: 'medlineEditorFull', raw: 'FED'},
 			{rl: 'medlineGeneSymbol', raw: 'GS'},
-			{rl: 'medlineISSN', raw: 'IS'},
 			{rl: 'number', raw: 'IP'},
 			{rl: 'medlineManuscriptID', raw: 'MID'},
 			{rl: 'medlineMeshTerms', raw: 'MH', outputRepeat: true, inputArray: true},
@@ -411,7 +410,6 @@ export let translations = {
 			{rl: 'medlineSubstanceName', raw: 'NM'},
 			{rl: 'medlineSecondarySource', raw: 'SI'},
 			{rl: 'medlineSpaceFlightMission', raw: 'SFM'},
-			{rl: 'medlineSubset', raw: 'SB'},
 			{rl: 'medlineTitleTransliterated', raw: 'TT', sort: 6},
 		],
 		collectionOutput: [], // Sorted + filtered version of the above to use when outputting

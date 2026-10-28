@@ -259,3 +259,26 @@ test('Medline - write the journal for references without raw Medline journal fie
 	})
 );
 
+
+test('Medline - read multiple ISSN entries as an array and write each once').do(t => Promise.resolve()
+	.then(()=> readMedline([
+		'PMID- 1',
+		'IS  - 1111-1111 (Print)',
+		'IS  - 2222-2222 (Electronic)',
+		'TI  - Title.',
+		'SB  - IM',
+		'',
+	].join('\n')))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.deep.property('medlineISSN', ['1111-1111 (Print)', '2222-2222 (Electronic)']);
+		expect(refs[0]).to.have.property('medlineSubset', 'IM');
+		return writeMedline(refs);
+	})
+	.then(contents => {
+		t.dump(contents);
+		expect(contents.match(/^IS  - .*$/gm)).to.deep.equal(['IS  - 1111-1111 (Print)', 'IS  - 2222-2222 (Electronic)']);
+		expect(contents.match(/^SB  - .*$/gm)).to.deep.equal(['SB  - IM']);
+	})
+);
+
