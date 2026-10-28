@@ -20,40 +20,65 @@ export default function streamEmitter (inStream) {
 		* @author Matt Carter <m@ttcarter.com>
 		*/
 		let reader = new Emitter();
+		let emitterOn = reader.on; // Original (chainable) subscribe function
+		let started = false;
+
+		/**
+		* Begin reading on the next tick
+		* This is deferred until a consumer subscribes (via `on()` or `pipe()`) so the first chunk is never emitted before anyone is listening
+		*/
+		let start = ()=> {
+			if (started) return;
+			started = true;
+			setTimeout(()=> reader.read());
+		};
+
+		/**
+		* Emit a decoded chunk of text to subscribers + any pipe target
+		* @param {String} data The decoded text to emit
+		*/
+		let emitData = data => {
+			if (!data) return;
+			reader.emit('data', data);
+			if (reader.pipeTarget) reader.pipeTarget.write(data);
+		};
+
 		Object.assign(reader, {
 			isBrowser: true, // Tells us we are in browser env
 			bytesRead: 0,
 			reader: inStream.getReader(),
 			textDecoder: new TextDecoder('utf-8'),
+			on(...args) {
+				emitterOn(...args);
+				start();
+				return reader;
+			},
 			read() { // Read one chunk + trigger emitters
 				this.reader.read()
 					.then(({done, value}) => {
 						if (done) {
+							emitData(this.textDecoder.decode()); // Flush any trailing partial character
 							reader.emit('end');
 
 							if (this.pipeTarget)
 								this.pipeTarget.end();
 						} else if (value) {
-							let data = this.textDecoder.decode(value);
-							this.bytesRead += data.length;
-							reader.emit('data', data);
-
-							if (this.pipeTarget)
-								this.pipeTarget.write(data);
+							this.bytesRead += value.byteLength;
+							emitData(this.textDecoder.decode(value, {stream: true})); // Stream mode so multi-byte characters split across chunks decode correctly
 
 							setTimeout(this.read.bind(this));
 						}
 					})
-					.catch(e => this.emit('error', e))
+					.catch(e => reader.emit('error', e))
 			},
 			pipeTarget: null,
 			pipe(target) {
 				this.pipeTarget = target;
+				start();
 				return this;
 			},
 		});
 
-		setTimeout(()=> reader.read());
 		return reader;
 	} else { // Assume Node native stream.Readable
 		return inStream;
