@@ -2,6 +2,85 @@ import Emitter from '../shared/emitter.js';
 import {default as SQLite} from 'sql.js';
 
 /**
+* Split an EndNote multi-line column value into an array
+*
+* @param {String} val The raw column value with entries separated by carriage returns
+* @returns {Array<String>} The individual entries
+*/
+let splitLines = val => ('' + val).split('\r').filter(Boolean);
+
+
+/**
+* Join an array into an EndNote multi-line column value
+*
+* @param {Array<String>|String} val The array (or single string) to join
+* @returns {String} The entries separated by carriage returns
+*/
+let joinLines = val => Array.isArray(val) ? val.join('\r') : (val ?? '');
+
+
+/**
+* EndNote internal reference type ID to Reflib type mappings
+* These follow the ordering of EndNote's built-in reference type list
+* NOTE: Only ID 0 (Journal Article) has been verified against real data, the remainder follow EndNote's documented ordering
+*
+* @type {Array<Object>}
+* @property {Number} sl The EndNote `reference_type` column value
+* @property {String} rl The Reflib type
+*/
+export const referenceTypes = [
+	{sl: 0, rl: 'journalArticle'},
+	{sl: 1, rl: 'book'},
+	{sl: 2, rl: 'thesis'},
+	{sl: 3, rl: 'conferenceProceedings'},
+	{sl: 4, rl: 'personalCommunication'},
+	{sl: 5, rl: 'newspaperArticle'},
+	{sl: 6, rl: 'computerProgram'},
+	{sl: 7, rl: 'bookSection'},
+	{sl: 8, rl: 'magazineArticle'},
+	{sl: 9, rl: 'editedBook'},
+	{sl: 10, rl: 'report'},
+	{sl: 11, rl: 'map'},
+	{sl: 12, rl: 'audioVisualMaterial'},
+	{sl: 13, rl: 'artwork'},
+	{sl: 14, rl: 'patent'},
+	{sl: 15, rl: 'web'},
+	{sl: 16, rl: 'bill'},
+	{sl: 17, rl: 'case'},
+	{sl: 18, rl: 'hearing'},
+	{sl: 19, rl: 'statute'},
+	{sl: 20, rl: 'generic'},
+	{sl: 21, rl: 'catalog'},
+	{sl: 22, rl: 'figure'},
+	{sl: 23, rl: 'chartOrTable'},
+	{sl: 24, rl: 'equation'},
+	{sl: 25, rl: 'filmOrBroadcast'},
+	{sl: 26, rl: 'manuscript'},
+	{sl: 27, rl: 'classicalWork'},
+	{sl: 28, rl: 'ancientText'},
+	{sl: 29, rl: 'dictionary'},
+	{sl: 30, rl: 'encyclopedia'},
+	{sl: 31, rl: 'grant'},
+	{sl: 32, rl: 'onlineDatabase'},
+	{sl: 33, rl: 'governmentDocument'},
+	{sl: 34, rl: 'legalRuleOrRegulation'},
+	{sl: 35, rl: 'unpublished'},
+	{sl: 36, rl: 'onlineMultimedia'},
+	{sl: 37, rl: 'conferencePaper'},
+	{sl: 38, rl: 'electronicArticle'},
+	{sl: 39, rl: 'electronicBook'},
+	{sl: 40, rl: 'aggregatedDatabase'},
+	{sl: 41, rl: 'blog'},
+	{sl: 42, rl: 'serial'},
+	{sl: 43, rl: 'standard'},
+	{sl: 44, rl: 'dataset'},
+	{sl: 45, rl: 'music'},
+	{sl: 46, rl: 'pamphlet'},
+	{sl: 47, rl: 'electronicBookSection'},
+];
+
+
+/**
 * EndNote/SDB column to RefLib column mappings
 * This must match EXACTLY a known, working .sdb Sqlite database table pragma
 * Column ID's not present within this list are generally scrapped
@@ -10,20 +89,25 @@ import {default as SQLite} from 'sql.js';
 * @property {String} sl The Sqlite/SDB column within the `refs` table
 * @property {String} rl The Reflib column (see README.md)
 * @property {'TEXT'|'INTEGER'} [type='TEXT'] SQLite column type, used for encoding when writing
-* @property {Function} [value] Optional column value mapper. Called as `(val:Any, ref:Object, col:Object, colIndex:Number, refIndex:Number)`
+* @property {Function} [value] Optional column value mapper used when writing. Called as `(val:Any, ref:Object, col:Object, colIndex:Number, refIndex:Number)`
+* @property {Function} [read] Optional transform applied to the raw column value when reading. Called as `(val:Any)`
+* @property {Function} [write] Optional transform applied to the Reflib value when writing. Called as `(val:Any)`
 * @property {*} [slDefault=''] Overriding SQLite column value if the field is empty
 */
 export const columnMappings = [
-	// FIXME: This list is incomplete
-	{sl: 'id', rl: 'recNumber', type: 'INTEGER', value: (val, ref, col, colIndex, refIndex) => ref.recNumber || refIndex + 1},
+	{sl: 'id', rl: 'recNumber', type: 'INTEGER', read: val => '' + val, value: (val, ref, col, colIndex, refIndex) => ref.recNumber || refIndex + 1},
 	// 'trash_state',
 	// 'text_styles',
-	// 'reference_type',
-	{sl: 'author', rl: 'author'},
-	// 'year',
+	{
+		sl: 'reference_type', rl: 'type', type: 'INTEGER',
+		read: val => referenceTypes.find(t => t.sl === val)?.rl || 'journalArticle',
+		write: val => referenceTypes.find(t => t.rl === val)?.sl ?? 0,
+	},
+	{sl: 'author', rl: 'authors', read: splitLines, write: joinLines},
+	{sl: 'year', rl: 'year'},
 	{sl: 'title', rl: 'title'},
 	{sl: 'pages', rl: 'pages'},
-	// 'secondary_title',
+	{sl: 'secondary_title', rl: 'journal'},
 	{sl: 'volume', rl: 'volume'},
 	{sl: 'number', rl: 'number'},
 	// 'number_of_volumes',
@@ -32,12 +116,12 @@ export const columnMappings = [
 	// 'publisher',
 	// 'subsidiary_author',
 	// 'edition',
-	// 'keywords',
-	// 'type_of_work',
+	{sl: 'keywords', rl: 'keywords', read: splitLines, write: joinLines},
+	{sl: 'type_of_work', rl: 'workType'},
 	{sl: 'date', rl: 'date'},
 	{sl: 'abstract', rl: 'abstract'},
 	{sl: 'label', rl: 'label'},
-	// 'url',
+	{sl: 'url', rl: 'urls', read: splitLines, write: joinLines},
 	// 'tertiary_title',
 	// 'tertiary_author',
 	{sl: 'notes', rl: 'notes'},
@@ -47,7 +131,7 @@ export const columnMappings = [
 	{sl: 'custom_3', rl: 'custom3'},
 	{sl: 'custom_4', rl: 'custom4'},
 	// 'alternate_title',
-	// 'accession_number',
+	{sl: 'accession_number', rl: 'accessionNum'},
 	// 'call_number',
 	// 'short_title',
 	{sl: 'custom_5', rl: 'custom5'},
@@ -56,17 +140,17 @@ export const columnMappings = [
 	// 'original_publication',
 	// 'reprint_edition',
 	// 'reviewed_item',
-	// 'author_address',
+	{sl: 'author_address', rl: 'address'},
 	{sl: 'caption', rl: 'caption'},
 	{sl: 'custom_7', rl: 'custom7'},
-	// 'electronic_resource_number',
+	{sl: 'electronic_resource_number', rl: 'doi'},
 	// 'translated_author',
 	// 'translated_title',
-	// 'name_of_database',
-	// 'database_provider',
+	{sl: 'name_of_database', rl: 'database'},
+	{sl: 'database_provider', rl: 'databaseProvider'},
 	{sl: 'research_notes', rl: 'researchNotes'},
 	{sl: 'language', rl: 'language'},
-	// 'access_date',
+	{sl: 'access_date', rl: 'accessDate'},
 	// 'last_modified_date',
 	// 'record_properties',
 	// 'added_to_library',
@@ -172,9 +256,11 @@ export function readBuffer(buf, options) {
 		.then(([{columns, values}]) => { // Digest references
 			values.forEach(v => {
 				let ref = columns.reduce((ref, col, colIndex) => {
-					if (columnMappingSL2RL[col]) // Is a column we have a mapping for (implied else - ignore the data)
-						ref[columnMappingSL2RL[col].rl] = v[colIndex];
+					let mapping = columnMappingSL2RL[col];
+					let raw = v[colIndex];
+					if (!mapping || raw === '' || raw === null || raw === undefined) return ref; // Unmapped column or empty value - ignore
 
+					ref[mapping.rl] = mapping.read ? mapping.read(raw) : raw;
 					return ref;
 				}, {});
 
@@ -221,6 +307,7 @@ export function writeStream(stream) {
 				.reduce((r, col, colIndex) => {
 					r[':' + col.sl] =
 						col.value ? col.value(ref[col.rl], ref, col, colIndex, refIndex++)
+						: col.write ? col.write(ref[col.rl])
 						: ref[col.rl] || col.slDefault || '';
 
 					return r;

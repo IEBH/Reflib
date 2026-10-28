@@ -1,4 +1,5 @@
 import test, {expect} from '@momsfriendlydevco/testa';
+import {compareTestRefs} from './data/blue-light.js';
 import * as reflib from '../lib/default.js';
 import temp from 'temp';
 import {writeFile} from 'node:fs/promises';
@@ -53,5 +54,42 @@ test('EndNote ENL - reject a corrupt file instead of resolving with no reference
 				expect(e).to.be.an.instanceOf(Error);
 			},
 		)
+});
+
+
+test('EndNote ENL - map all supported columns into Reflib fields').timeout('30s').do(t => Promise.resolve()
+	.then(()=> reflib.readFile(`${config.testPath}/data/blue-light.enl`))
+	.then(refs => {
+		t.dump(refs.find(r => r.recNumber == '895'));
+		compareTestRefs(refs);
+
+		let ref = refs.find(r => r.recNumber == '895');
+		expect(ref).to.have.property('type', 'journalArticle');
+		expect(ref).to.have.property('accessionNum', '29657938');
+		expect(ref).to.have.property('databaseProvider', 'NLM');
+		expect(ref).to.not.have.property('label'); // Empty columns should be omitted
+	})
+);
+
+
+test('EndNote ENL - reference types and arrays survive a write -> read cycle').timeout('30s').do(t => {
+	let refs = [
+		{recNumber: '1', type: 'book', title: 'A', authors: ['Smith, J.', 'Jones, K.'], keywords: ['alpha', 'beta'], urls: ['http://example.com']},
+		{recNumber: '2', type: 'thesis', title: 'B'},
+		{recNumber: '3', title: 'C'}, // No type - should default to journalArticle
+	];
+
+	let tempPath = temp.path({prefix: 'reflib-', suffix: '.enl'});
+
+	return Promise.resolve()
+		.then(()=> reflib.writeFile(tempPath, refs))
+		.then(()=> reflib.readFile(tempPath))
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs.map(r => r.type)).to.deep.equal(['book', 'thesis', 'journalArticle']);
+			expect(newRefs[0]).to.have.deep.property('authors', ['Smith, J.', 'Jones, K.']);
+			expect(newRefs[0]).to.have.deep.property('keywords', ['alpha', 'beta']);
+			expect(newRefs[0]).to.have.deep.property('urls', ['http://example.com']);
+		})
 });
 
