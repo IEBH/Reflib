@@ -201,7 +201,7 @@ export function tidyRef(ref, settings) {
 				} else if (!settings.preserveUnkownKeys && !rlField) { // Omit unknown fields
 					return;
 				} else if (rlField && rlField.array) { // Field needs array casting
-					return [rlField.rl, val.split(/\n*\s+and\s+/)];
+					return [rlField.rl, val.split(rlField.split).filter(Boolean)];
 				} else if (rlField && rlField.rl) { // Known BT field but different RL field
 					return [rlField.rl, val];
 				} else if (settings.preserveUnkownKeys) { // Everything else - add field
@@ -301,8 +301,7 @@ export function writeStream(stream, options) {
 
 						let key = rlField ? rlField.bt : rawKey; // Use Reflib->BibTeX field mapping if we have one, otherwise use raw key
 						let val = escape( // Escape input value, either as an Array via join or as a flat string
-							rawKey == 'authors' && Array.isArray(rawVal) ? rawVal.join(' and ') // Special joining conditions for author field
-							: Array.isArray(rawVal) ? rawVal.join(', ') // Treat other arrays as a CSV
+							Array.isArray(rawVal) ? rawVal.join(rlField?.join ?? ', ') // Join arrays using the field specific joiner, falling back to CSV
 							: rawVal // Splat everything else as a string
 						);
 
@@ -351,6 +350,9 @@ function generateCitationKey(ref) {
 * Lookup tables for this module
 * @type {Object}
 * @property {Array<Object>} fields Field translations between Reflib (`rl`) and BibTeX format (`bt`)
+* @property {Boolean} [fields.array=false] Whether the Reflib field is an array which needs splitting when reading and joining when writing
+* @property {RegExp} [fields.split] RegExp used to split the BibTeX value into an array when reading
+* @property {String} [fields.join] String used to join the array into a BibTeX value when writing
 */
 export let translations = {
 	// Field translations {{{
@@ -358,7 +360,7 @@ export let translations = {
 		collection: [
 			// Order by priority (highest at top)
 			{rl: 'address', bt: 'address'},
-			{rl: 'authors', bt: 'author', array: true},
+			{rl: 'authors', bt: 'author', array: true, split: /\n*\s+and\s+/, join: ' and '},
 			{rl: 'doi', bt: 'doi'},
 			{rl: 'edition', bt: 'edition'},
 			{rl: 'editor', bt: 'editor'},
@@ -379,8 +381,8 @@ export let translations = {
 			// Nonestandard but used anyway
 			{rl: 'abstract', bt: 'abstract'},
 			{rl: 'language', bt: 'language'},
-			{rl: 'keywords', bt: 'keywords', array: true},
-			{rl: 'urls', bt: 'url', array: true},
+			{rl: 'keywords', bt: 'keywords', array: true, split: /\s*[,;]\s*/, join: ', '},
+			{rl: 'urls', bt: 'url', array: true, split: /\s*[,;]\s+|\s+/, join: ' '},
 
 			// Unknown how to translate these
 			// {bt: 'annote'},

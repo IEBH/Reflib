@@ -276,3 +276,38 @@ test('BibTeX - parse entries split across arbitrary chunk boundaries').do(t => {
 		})
 });
 
+
+test('BibTeX - keywords and URLs survive a write -> read cycle').do(t => {
+	let refs = [{
+		type: 'journalArticle',
+		title: 'A',
+		authors: ['Smith, J.', 'Jones, K. L.'],
+		keywords: ['acne', 'blue light', 'photodynamic therapy'],
+		urls: ['http://example.com/a?x=1,2', 'https://example.org/b'],
+	}];
+
+	return Promise.resolve()
+		.then(()=> writeBibtex(refs))
+		.then(contents => {
+			t.dump(contents);
+			expect(contents).to.match(/^author=\{Smith, J\. and Jones, K\. L\.\}/m);
+			expect(contents).to.match(/^keywords=\{acne, blue light, photodynamic therapy\}/m);
+			return readBibtex(contents);
+		})
+		.then(newRefs => {
+			t.dump(newRefs);
+			expect(newRefs[0]).to.have.deep.property('authors', refs[0].authors);
+			expect(newRefs[0]).to.have.deep.property('keywords', refs[0].keywords);
+			expect(newRefs[0]).to.have.deep.property('urls', refs[0].urls);
+		})
+});
+
+
+test('BibTeX - read keywords separated by semicolons').do(t => Promise.resolve()
+	.then(()=> readBibtex('@article{k1,\n  title = {A},\n  keywords = {alpha; beta;gamma}\n}\n'))
+	.then(refs => {
+		t.dump(refs);
+		expect(refs[0]).to.have.deep.property('keywords', ['alpha', 'beta', 'gamma']);
+	})
+);
+
