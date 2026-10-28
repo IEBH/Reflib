@@ -310,6 +310,7 @@ export function writeStream(stream, options) {
 		},
 		middle() {
 			stream.write('\n');
+			return Promise.resolve();
 		},
 		end() {
 			return new Promise((resolve, reject) =>

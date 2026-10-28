@@ -429,3 +429,13 @@ test('BibTeX - parse citation keys into string recNumbers or keys').do(t => {
 			expect(anyKey[3]).to.have.property('recNumber', 'Smith2020');
 		})
 });
+
+
+test('BibTeX - writer hooks all return promises').do(()=> {
+	let stream = reflib.writeStream('bibtex', fakeStreams.writeStream());
+	expect(stream.start()).to.be.an.instanceOf(Promise);
+	expect(stream.write({title: 'A'})).to.be.an.instanceOf(Promise);
+	expect(stream.middle({title: 'A'})).to.be.an.instanceOf(Promise);
+	return stream.end()
+		.then(result => expect(result).to.be.undefined);
+});
